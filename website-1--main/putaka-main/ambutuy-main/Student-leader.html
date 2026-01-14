@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Student Leader Dashboard</title>
+
+<style>
+* { box-sizing: border-box; }
+body { margin:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f5f7fa; }
+
+/* HEADER */
+.header {
+    background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    color:white;
+    padding:20px 40px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+.logout-btn {
+    background: rgba(255,255,255,0.2);
+    color:white;
+    border:1px solid white;
+    padding:8px 16px;
+    border-radius:6px;
+    cursor:pointer;
+}
+.logout-btn:hover { background: rgba(255,255,255,0.3); }
+
+/* CONTAINER */
+.container {
+    max-width:1400px;
+    margin:0 auto;
+    padding:40px 20px;
+    display:grid;
+    grid-template-columns:100px 1fr;
+    gap:20px;
+}
+
+/* SIDEBAR */
+.sidebar {
+    background:white;
+    border-radius:12px;
+    padding:16px;
+    position:sticky;
+    top:100px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+.add-section-card {
+    background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    cursor:pointer;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+.add-section-card:hover { transform:scale(1.1); }
+.add-section-card .plus-icon { font-size:40px; color:white; }
+
+.analytics-card {
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    background:#f0f3ff;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    transition:0.3s;
+}
+.analytics-card span {
+    font-size:10px;
+    font-weight:600;
+    margin-top:2px;
+}
+.analytics-card:hover {
+    background:#e0e7ff;
+    transform:scale(1.1);
+}
+
+/* TIMELINE */
+.timeline-card {
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#ffb86b 0%,#ff7eb6 100%);
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    transition:0.3s;
+}
+.timeline-card span {
+    font-size:10px;
+    font-weight:600;
+    margin-top:2px;
+}
+.timeline-card:hover { transform:scale(1.1); }
+
+/* MAIN CONTENT */
+.info-box {
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    margin-bottom:30px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+.dashboard-sections { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; }
+.dashboard-card { background:white; padding:20px; border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,0.06); }
+.progress-circle { font-size:42px; font-weight:700; color:#667eea; text-align:center; }
+.progress-label { text-align:center; color:#666; }
+
+/* MODAL */
+.modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; }
+.modal.show { display:flex; }
+.modal-content { background:white; padding:30px; border-radius:12px; width:90%; max-width:400px; }
+.modal-buttons { display:flex; justify-content:flex-end; gap:10px; }
+.modal-btn { padding:10px 20px; border:none; border-radius:6px; cursor:pointer; font-weight:600; transition:all 0.3s; }
+.save-btn { background:#27ae60; color:white; }
+.cancel-btn { background:#ddd; color:#333; }
+.cancel-btn:hover { background:#ccc; }
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <div style="display:flex;flex-direction:column;gap:6px;">
+        <h1>🎓 Student Leader Dashboard</h1>
+        <div id="groupInfo" class="group-info" aria-live="polite" style="font-weight:600;font-size:14px;opacity:0.95;"></div>
+    </div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <!-- Overview has been removed -->
+
+        <div class="analytics-card" title="Research Paper Creation" onclick="window.location.href='researchpaper_creation.html'">
+            ✍️<span>Create</span>
+        </div>
+
+        <div class="analytics-card" title="Submit Paper" onclick="(function(){ if(localStorage.getItem('currentSection')){}; window.location.href='submit-leader.html'; })()">
+            📝<span>Submit</span>
+        </div>
+
+        <div class="analytics-card timeline-card" onclick="openTimelineModal()" title="Timeline">
+            🕒<span>Timeline</span>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="info-box welcome-box">
+            <h2>Welcome, Student Leader</h2>
+            <p>Manage your group's submissions and coordinate with your advisor.</p>
+        </div>
+
+        <!-- Student dashboard cards below -->
+        <div class="dashboard-sections" style="margin-top:30px;">
+            <div class="dashboard-card">
+                <h3>📈 Group Progress</h3>
+                <div class="progress-circle" id="overallProgress">0%</div>
+                <p class="progress-label">Overall group completion</p>
+            </div>
+
+            <div class="dashboard-card">
+                <h3>📝 Leader Actions</h3>
+                <div style="font-size:13px;color:#666;">Assign parts, monitor member submissions, and finalize group reports.</div>
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- TIMELINE MODAL (read-only for student leaders) -->
+    <div id="timelineModal" class="modal" aria-hidden="true">
+        <div class="modal-content">
+            <h2>Research Timeline</h2>
+            <div id="timelineList" style="max-height:240px;overflow:auto;margin-bottom:10px;">
+                <!-- entries will appear here -->
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel-btn" onclick="closeTimelineModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Robust global fallback so timeline button works even before other script handlers attach
+window.openTimelineModal = function(){
+    try{
+        if (typeof window._openTimelineModalInternal === 'function') return window._openTimelineModalInternal();
+        const secsRaw = localStorage.getItem('timelineSections') || '[]';
+        const researchRaw = localStorage.getItem('researchTimeline') || '[]';
+        let entries = [];
+        try{ const secs = JSON.parse(secsRaw); if(Array.isArray(secs) && secs.length) entries = secs.map(s => ({ title: s.name || s.title || '', date: s.deadline || s.date || '' })); else { const r = JSON.parse(researchRaw || '[]'); if(Array.isArray(r) && r.length) entries = r.map(t => ({ title: t.title || t.name || '', date: t.date || '' })); } }catch(e){ entries = []; }
+        const list = document.getElementById('timelineList'); if(list){ list.innerHTML = ''; if(!entries.length) list.innerHTML = '<div style="color:#777;padding:10px;">No timeline events yet.</div>'; else entries.forEach(t=>{ const div = document.createElement('div'); div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;"><div><strong>${t.title}</strong><div style="color:#666;font-size:12px">${t.date || ''}</div></div></div>`; list.appendChild(div); }); }
+        const m = document.getElementById('timelineModal'); if(m){ m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
+    }catch(err){ console.warn('openTimelineModal fallback failed', err); }
+};
+
+// Global close handler + UX helpers (overlay click + Escape key)
+window.closeTimelineModal = function(){
+    try{
+        if (typeof window._closeTimelineModalInternal === 'function') return window._closeTimelineModalInternal();
+        const m = document.getElementById('timelineModal'); if(m){ m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
+    }catch(err){ console.warn('closeTimelineModal fallback failed', err); }
+};
+
+// Close on overlay click
+document.addEventListener('click', function(e){ try{ const m = document.getElementById('timelineModal'); if(m && m.classList.contains('show') && e.target === m){ window.closeTimelineModal(); } }catch(_){} });
+// Close on Escape
+document.addEventListener('keydown', function(e){ try{ if(e.key === 'Escape'){ const m = document.getElementById('timelineModal'); if(m && m.classList.contains('show')) window.closeTimelineModal(); } }catch(_){} });
+
+// Make logout reusable (also used by header button)
+function logout(){ localStorage.removeItem('loggedInUser'); localStorage.removeItem('userRole'); localStorage.removeItem('currentGroup'); localStorage.removeItem('currentSection'); window.location.href='login.html'; }
+
+// small progress animation
+document.addEventListener('DOMContentLoaded', ()=>{ let current = 0; const el = document.getElementById('overallProgress'); const t=setInterval(()=>{ if(current>=60) clearInterval(t); else el.textContent=++current + '%'; },20); });
+
+// TIMELINE: read-only viewer for student leaders (matches Student_dashboard behavior)
+let studentTimelineEntries = [];
+function loadStudentTimeline(){
+    // Prefer advisor 'researchTimeline' entry (title + date)
+    studentTimelineEntries = JSON.parse(localStorage.getItem('researchTimeline') || '[]');
+    // Fallback to timelineSections if present (name/deadline)
+    if(!studentTimelineEntries || !studentTimelineEntries.length){
+        const secs = JSON.parse(localStorage.getItem('timelineSections') || '[]');
+        studentTimelineEntries = secs.map(s => ({ title: s.name, date: s.deadline }));
+    }
+}
+
+function openTimelineModal(){
+    loadStudentTimeline();
+    renderStudentTimeline();
+    const m = document.getElementById('timelineModal');
+    if(m) { m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
+}
+function closeTimelineModal(){
+    const m = document.getElementById('timelineModal');
+    if(m) { m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
+}
+
+function renderStudentTimeline(){
+    const list = document.getElementById('timelineList');
+    if(!list) return;
+    list.innerHTML = '';
+    if(!studentTimelineEntries || !studentTimelineEntries.length){
+        list.innerHTML = '<div style="color:#777;padding:10px;">No timeline events yet.</div>';
+        return;
+    }
+    studentTimelineEntries.forEach(t=>{
+        const div = document.createElement('div');
+        div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;"><div><strong>${t.title}</strong><div style="color:#666;font-size:12px">${t.date || ''}</div></div></div>`;
+        list.appendChild(div);
+    });
+}
+
+// Initialize timeline entries at load so the modal shows created events immediately
+loadStudentTimeline();
+
+// Keep timeline up to date when storage changes
+window.addEventListener('storage', (e)=> {
+    if(e.key === 'researchTimeline' || e.key === 'timelineSections') {
+        // always refresh in-memory timeline entries
+        loadStudentTimeline();
+        // refresh modal if open
+        if(document.getElementById('timelineModal') && document.getElementById('timelineModal').classList.contains('show')) {
+            renderStudentTimeline();
+        }
+    }
+});
+
+// Expose controls globally for sidebar inline onclick
+window.openTimelineModal = openTimelineModal;
+window.closeTimelineModal = closeTimelineModal;
+</script>
+
+</body>
+</html>

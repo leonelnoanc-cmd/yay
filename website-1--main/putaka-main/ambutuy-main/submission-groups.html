@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Submission Groups</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; }
+
+/* HEADER */
+.header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 20px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.header h1 { margin:0; font-size:24px; }
+.back-btn, .logout-btn {
+    background: rgba(255,255,255,0.2);
+    color:white;
+    border:1px solid white;
+    padding:8px 16px;
+    border-radius:6px;
+    cursor:pointer;
+    margin-left:10px;
+    transition:all 0.3s;
+}
+.back-btn:hover, .logout-btn:hover { background: rgba(255,255,255,0.3); }
+
+/* CONTAINER */
+.container {
+    max-width:1400px;
+    margin:0 auto;
+    padding:40px 20px;
+}
+
+/* INFO BOX */
+.info-box {
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    margin-bottom:30px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* GROUP CARDS */
+.groups-container {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(220px,1fr));
+    gap:20px;
+}
+.group-card {
+    background:#b0c4de;
+    padding:25px;
+    border-radius:12px;
+    min-height:150px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    cursor:pointer;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+    border:2px solid transparent;
+    transition:all 0.3s;
+}
+.group-card:hover {
+    transform:translateY(-4px);
+    box-shadow:0 8px 20px rgba(0,0,0,0.15);
+    border-color:#667eea;
+}
+.group-card h3 { margin:0 0 8px 0; font-size:18px; font-weight:700; }
+.group-card p { margin:0; font-size:14px; color:#333; }
+
+.empty-state { text-align:center; padding:60px; color:#999; }
+
+/* VIEW BUTTON */
+.view-btn {
+    margin-top:12px;
+    padding:8px 14px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    font-size:13px;
+    font-weight:600;
+    background:#667eea;
+    color:white;
+    transition:all 0.3s;
+}
+.view-btn:hover { background:#5568d3; }
+
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1 id="sectionTitle">Groups</h1>
+    <div>
+        <button class="back-btn" onclick="goBack()">← Back</button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="info-box">
+        📌 View all groups within this section.
+    </div>
+
+    <div class="groups-container" id="groupsContainer"></div>
+    <div class="empty-state" id="emptyState">No groups found in this section.</div>
+</div>
+
+<script>
+let currentSection = null;
+let groups = [];
+
+window.onload = () => {
+    loadCurrentSection();
+    loadGroups();
+    renderGroups();
+};
+
+function loadCurrentSection() {
+    const saved = localStorage.getItem('currentSection');
+    if(saved){
+        currentSection = JSON.parse(saved);
+        document.getElementById('sectionTitle').textContent = `${currentSection.name} - Groups`;
+    }
+}
+
+function loadGroups(){
+    try{
+        const allSectionGroups = JSON.parse(localStorage.getItem('allSectionGroups')) || {};
+        if(currentSection){
+            groups = allSectionGroups[currentSection.name] || [];
+        }
+    }catch(e){ groups = []; }
+}
+
+function renderGroups(){
+    const container = document.getElementById('groupsContainer');
+    const empty = document.getElementById('emptyState');
+    container.innerHTML = '';
+    empty.style.display = groups.length ? 'none' : 'block';
+
+    groups.forEach((g,i)=>{
+        const card = document.createElement('div');
+        card.className='group-card';
+        card.innerHTML = `
+            <h3>${g.name}</h3>
+            <p>Students: ${g.students || 0}</p>
+            <button class="view-btn" onclick="viewGroup(${i})">View Submissions</button>
+        `;
+        container.appendChild(card);
+    });
+}
+
+function viewGroup(index){
+    const group = groups[index];
+    localStorage.setItem('currentGroup', JSON.stringify(group));
+    window.location.href = 'submission-details.html'; // you can create a page to show submissions
+}
+
+function goBack(){ window.location.href='submission-tracker.html'; }
+function logout(){ localStorage.clear(); window.location.href='login.html'; }
+</script>
+
+</body>
+</html>

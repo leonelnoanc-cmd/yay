@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Submit Chapter Parts</title>
+<style>
+body{font-family:'Segoe UI',Tahoma, Geneva, Verdana, sans-serif;background:#f5f7fa;margin:0;padding:0}
+.top-bar{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
+.container{max-width:900px;margin:28px auto;padding:20px}
+.section{background:#fff;padding:16px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.06);margin-bottom:12px}
+.parts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.part{background:#f1f1f1;padding:8px 12px;border-radius:8px;display:flex;align-items:center;gap:8px}
+.fixed-send{position:fixed;right:20px;bottom:20px;background:#27ae60;color:#fff;padding:12px 18px;border:none;border-radius:8px;cursor:pointer;font-weight:700}
+.small-note{color:#666;font-size:0.95em}
+</style>
+</head>
+<body>
+<div class="top-bar"><h1>Send Chapter Parts</h1></div>
+<div class="container">
+    <div id="content"></div>
+    <div style="margin-top:12px;color:#666;font-size:0.95em;">Choose parts you want to submit for each chapter, then click <strong>Send</strong>.</div>
+</div>
+<button class="fixed-send" id="sendBtn">Send ➤</button>
+<script>
+(function(){
+    const params = new URLSearchParams(location.search);
+    const raw = params.get('chapters');
+    const paperIndex = params.get('paperIndex');
+    let chapters = [];
+    try{ chapters = raw ? JSON.parse(decodeURIComponent(raw)) : []; } catch(e){ chapters = []; }
+    const content = document.getElementById('content');
+
+    if(!chapters.length){ content.innerHTML = '<div class="small-note">No chapters selected. Return to the previous page to choose chapters.</div>'; }
+
+    const chapterPartsMap = {
+        '1': ['Background of the Study','Statement of the Problem','Conceptual Framework','Theoretical Framework','Significance of the Study','Scope and Delimitation of the Study','Definition of Terms'],
+        '2': ['Review of Related Literature','Review of Related Studies'],
+        '3': ['Research Design','Locale of the Study','Research Instrument','Data Gathering Procedures','Method of Data Analysis'],
+        '4': ['Presentation of Key Findings'],
+        '5': ['Summary','Implication of Findings','Conclusions','Recommendations']
+    };
+
+    // show related paper title if available
+    if(paperIndex){
+        try{
+            const papers = JSON.parse(localStorage.getItem('researchPapers') || '[]');
+            if(papers && papers[Number(paperIndex)] && papers[Number(paperIndex)].title){
+                const p = document.createElement('div'); p.style.marginBottom = '12px'; p.innerHTML = `<strong>Paper:</strong> ${papers[Number(paperIndex)].title}`;
+                document.getElementById('content').appendChild(p);
+            }
+        }catch(e){ }
+    }
+
+    chapters.forEach(ch => {
+        const id = String(ch);
+        const parts = chapterPartsMap[id] || [];
+        const sec = document.createElement('div'); sec.className='section';
+        sec.innerHTML = `<div style="font-weight:700;">Chapter ${id}</div><div class="parts">${parts.map(p=>`<label class="part"><input type="checkbox" data-chapter="${encodeURIComponent(id)}" value="${p}"> ${p}</label>`).join('')}</div>`;
+        content.appendChild(sec);
+    });
+    document.getElementById('sendBtn').addEventListener('click', ()=>{
+        const checked = Array.from(document.querySelectorAll('.parts input:checked')).map(i=>({ chapter: decodeURIComponent(i.dataset.chapter), part: i.value }));
+        if(!checked.length){ alert('Select at least one part to send'); return; }
+        // Build submission record
+        const submission = { paperIndex: paperIndex ? Number(paperIndex) : null, items: checked, submittedAt: new Date().toISOString() };
+        const subs = JSON.parse(localStorage.getItem('submissions') || '[]');
+        subs.push(submission);
+        localStorage.setItem('submissions', JSON.stringify(subs));
+        // show feedback
+        alert('Submission sent ✅');
+        // optional: redirect back to dashboard or researcher page
+        window.location.href = 'Student_dashboard.html';
+    });
+})();
+</script>
+</body>
+</html>

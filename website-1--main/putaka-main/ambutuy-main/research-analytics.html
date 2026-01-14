@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Research Analytics</title>
+<style>
+* { box-sizing: border-box; }
+body { margin:0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f5f7fa; }
+.header { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; padding:20px 40px; display:flex; justify-content:space-between; align-items:center; }
+.back-btn { background: rgba(255,255,255,0.2); color:white; border:1px solid white; padding:8px 16px; border-radius:6px; cursor:pointer; }
+.container { max-width:1400px; margin:auto; padding:40px 20px; }
+h2 { margin-bottom:20px; color:#333; }
+.sections-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:20px; }
+.section-card { background:white; padding:22px; border-radius:14px; box-shadow:0 4px 15px rgba(0,0,0,0.1); cursor:pointer; transition:0.3s; border-left:6px solid #667eea; }
+.section-card:hover { transform:translateY(-6px); box-shadow:0 10px 28px rgba(0,0,0,0.15); }
+.section-card h3 { margin:0 0 10px; color:#667eea; font-size:20px; }
+.metric { font-size:14px; color:#555; margin-bottom:6px; }
+.empty { text-align:center; color:#999; margin-top:60px; font-size:16px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1>📊 Research Analytics</h1>
+    <button class="back-btn" onclick="goBack()">← Back</button>
+</div>
+
+<div class="container">
+    <h2>Select a Section</h2>
+    <div class="sections-grid" id="sectionsGrid"></div>
+    <div class="empty" id="emptyState">No sections available. Create sections first.</div>
+</div>
+
+<script>
+function goBack() {
+    window.location.href = 'Adviser_dashboard.html';
+}
+
+// When a section is clicked, save the name to localStorage and open research-group.html
+function openSection(sectionName) {
+    const trimmedName = sectionName.trim();
+    localStorage.setItem('currentSection', trimmedName);
+    window.location.href = 'research-group.html';
+}
+
+function loadSections() {
+    const grid = document.getElementById('sectionsGrid');
+    const empty = document.getElementById('emptyState');
+
+    const sections = JSON.parse(localStorage.getItem('advisorSections')) || [];
+
+    if (sections.length === 0) {
+        empty.style.display = 'block';
+        return;
+    }
+    empty.style.display = 'none';
+    grid.innerHTML = '';
+
+    sections.forEach(section => {
+        const name = (section.name || 'Unnamed Section').trim();
+        const card = document.createElement('div');
+        card.className = 'section-card';
+        card.onclick = () => openSection(name);
+
+        card.innerHTML = `
+            <h3>${name}</h3>
+            <div class="metric">📅 Created: ${section.createdDate || '—'}</div>
+            <div class="metric">👥 Groups: ${section.students || 0}</div>
+            <div class="metric">➡ Click to view groups</div>
+        `;
+
+        grid.appendChild(card);
+    });
+}
+
+loadSections();
+</script>
+
+</body>
+</html>

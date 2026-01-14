@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Submission Tracker</title>
+
+<style>
+* { box-sizing: border-box; }
+body { margin:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f5f7fa; }
+
+/* HEADER */
+.header {
+    background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    color:white;
+    padding:20px 40px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+.header h1 { margin:0; font-size:24px; }
+.back-btn, .logout-btn {
+    background: rgba(255,255,255,0.2);
+    color:white;
+    border:1px solid white;
+    padding:8px 16px;
+    border-radius:6px;
+    cursor:pointer;
+    margin-left:10px;
+    transition:all 0.3s;
+}
+.back-btn:hover, .logout-btn:hover { background: rgba(255,255,255,0.3); }
+
+/* CONTAINER */
+.container {
+    max-width:1400px;
+    margin:0 auto;
+    padding:40px 20px;
+}
+
+/* INFO BOX */
+.info-box {
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    margin-bottom:30px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+/* SECTIONS LIST */
+.sections-container {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:25px;
+}
+.section-card {
+    background:#b0c4de;
+    padding:30px;
+    border-radius:15px;
+    min-height:180px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    cursor:pointer;
+    box-shadow:0 2px 12px rgba(0,0,0,0.1);
+    border:2px solid transparent;
+    transition:all 0.3s;
+}
+.section-card:hover {
+    transform:translateY(-6px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.15);
+    border-color:#667eea;
+}
+.section-card h3 {
+    margin:0 0 12px 0;
+    font-size:20px;
+    font-weight:700;
+}
+.section-card p {
+    margin:0 0 12px 0;
+    font-size:14px;
+    color:#333;
+}
+.view-btn {
+    padding:8px 14px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    font-size:13px;
+    font-weight:600;
+    background:#667eea;
+    color:white;
+    transition:all 0.3s;
+}
+.view-btn:hover { background:#5568d3; }
+
+.empty-state {
+    text-align:center;
+    padding:60px;
+    color:#999;
+}
+
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>📥 Submission Tracker</h1>
+    <div>
+        <button class="back-btn" onclick="goBack()">← Back</button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="info-box">
+        📌 View all sections and access their groups.
+    </div>
+
+    <div class="sections-container" id="sectionsContainer"></div>
+    <div class="empty-state" id="emptyState">No sections found. Please add sections in the Advisor Dashboard.</div>
+</div>
+
+<script>
+let sections = [];
+
+window.onload = () => {
+    sections = JSON.parse(localStorage.getItem('advisorSections')) || [];
+    renderSections();
+};
+
+function renderSections() {
+    const container = document.getElementById('sectionsContainer');
+    const empty = document.getElementById('emptyState');
+    container.innerHTML = '';
+    empty.style.display = sections.length ? 'none' : 'block';
+
+    sections.forEach((s,i)=>{
+        const card = document.createElement('div');
+        card.className='section-card';
+        card.innerHTML = `
+            <h3>${s.name}</h3>
+            <p>Students: ${s.students || 0}</p>
+            <button class="view-btn" onclick="viewGroups(${i})">View Groups</button>
+        `;
+        container.appendChild(card);
+    });
+}
+
+// Navigate to submission-groups.html
+function viewGroups(index){
+    const section = sections[index];
+    localStorage.setItem('currentSection', JSON.stringify(section));
+    window.location.href = 'submission-groups.html';
+}
+
+function goBack(){ window.location.href='Adviser_dashboard.html'; }
+</script>
+
+</body>
+</html>

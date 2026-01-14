@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Section Groups</title>
+<style>
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f7fa; }
+.header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 20px 40px; box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1); display: flex; justify-content: space-between; align-items: center; }
+.header h1 { margin: 0; font-size: 28px; }
+.back-btn, .logout-btn { background: rgba(255,255,255,0.2); color: white; border: 1px solid white; padding: 8px 16px; border-radius: 6px; cursor: pointer; transition: all 0.3s; font-size: 14px; }
+.back-btn:hover, .logout-btn:hover { background: rgba(255,255,255,0.3); }
+.container { max-width: 1400px; margin: 0 auto; padding: 40px 20px; display: grid; grid-template-columns: 100px 1fr; gap: 20px; }
+.sidebar { grid-column: 1; background: white; border-radius: 12px; padding: 16px; height: auto; position: sticky; top: 100px; display: flex; flex-direction: column; align-items: center; gap: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+.add-group-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); width: 70px; height: 70px; border-radius: 50%; cursor: pointer; transition: all 0.3s; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px rgba(102,126,234,0.3); border: none; padding: 0; flex-shrink: 0; order: -1; margin-bottom: 10px; }
+.add-group-card:hover { transform: scale(1.1); box-shadow: 0 8px 25px rgba(102,126,234,0.5); }
+.add-group-card:active { transform: scale(0.95); }
+.plus-icon { font-size: 28px; color: white; margin: 0; line-height: 1; display: flex; justify-content: center; align-items: center; }
+.main-content { grid-column: 2; }
+.info-box { background: #e8f0fe; border-left: 4px solid #667eea; padding: 16px; border-radius: 6px; margin-bottom: 24px; }
+.info-box p { margin: 0; color: #333; font-size: 14px; }
+.groups-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 20px; }
+.group-card { background: #b0c4de; padding: 20px; border-radius: 10px; text-align: center; cursor: pointer; transition: all 0.3s; min-height: 140px; display: flex; flex-direction: column; justify-content: space-between; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border: 2px solid transparent; }
+.group-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.15); border-color: #667eea; }
+.group-card h3 { margin: 0 0 10px 0; color: #333; font-size: 18px; font-weight: 700; cursor: pointer; padding: 4px 8px; border-radius: 4px; transition: all 0.2s; }
+.group-card h3:hover { background: rgba(102,126,234,0.1); }
+.group-card p { margin: 0; color: #555; font-size: 13px; }
+.group-actions { display: flex; gap: 8px; margin-top: 12px; justify-content: center; }
+.group-btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 600; transition: all 0.2s; }
+.edit-btn { background: #667eea; color: white; }
+.edit-btn:hover { background: #5568d3; }
+.delete-btn { background: #e74c3c; color: white; }
+.delete-btn:hover { background: #c0392b; }
+.empty-state { text-align: center; padding: 60px 20px; color: #999; }
+.empty-state p { margin: 0; font-size: 16px; }
+.modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4); }
+.modal.show { display: flex; justify-content: center; align-items: center; }
+.modal-content { background-color: white; padding: 30px; border-radius: 12px; width: 90%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+.modal-content h2 { margin-top: 0; color: #333; }
+.close-btn { background: none; border: none; font-size: 28px; cursor: pointer; color: #999; float: right; }
+.close-btn:hover { color: #333; }
+.modal-input { width: 100%; padding: 10px 12px; margin-bottom: 20px; border: 2px solid #ddd; border-radius: 6px; font-size: 14px; transition: border-color 0.3s; }
+.modal-input:focus { outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1); }
+.modal-buttons { display: flex; gap: 12px; justify-content: flex-end; }
+.modal-btn { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; transition: all 0.3s; }
+.save-btn { background: #27ae60; color: white; }
+.save-btn:hover { background: #229954; }
+.cancel-btn { background: #ddd; color: #333; }
+.cancel-btn:hover { background: #ccc; }
+
+@media (max-width: 768px) {
+    .header { flex-direction: column; gap: 12px; padding: 20px; }
+    .header h1 { font-size: 22px; }
+    .container { grid-template-columns: 1fr; }
+    .sidebar { grid-column: 1; position: relative; top: auto; margin-bottom: 20px; }
+    .groups-container { grid-template-columns: repeat(auto-fill, minmax(180px,1fr)); }
+}
+</style>
+</head>
+<body>
+<div class="header">
+    <div><h1 id="sectionTitle">Section Groups</h1></div>
+    <div style="display:flex;gap:12px;">
+        <button class="back-btn" onclick="goBack()">← Back</button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="sidebar">
+        <div class="add-group-card" onclick="addMoreGroups()">
+            <div class="plus-icon">+</div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <div class="info-box">
+            <p>📌 Create groups within this section. Each group can contain students.</p>
+        </div>
+
+        <h2 style="color:#333;margin-bottom:20px;">Your Groups</h2>
+        <div class="groups-container" id="groupsContainer"></div>
+        <div class="empty-state" id="emptyState">
+            <p>No groups yet. Click the "+" above to add groups!</p>
+        </div>
+    </div>
+</div>
+
+<!-- Add More Modal -->
+<div id="addMoreModal" class="modal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeAddMoreModal()">&times;</button>
+        <h2>Add Groups</h2>
+        <p style="color:#666;font-size:14px;margin-bottom:20px;">How many groups would you like to add?</p>
+        <input type="number" id="addMoreCount" class="modal-input" min="1" max="20" value="1" placeholder="Number of groups">
+        <div class="modal-buttons">
+            <button class="modal-btn cancel-btn" onclick="closeAddMoreModal()">Cancel</button>
+            <button class="modal-btn save-btn" onclick="confirmAddMore()">Add Groups</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div id="editModal" class="modal">
+    <div class="modal-content">
+        <button class="close-btn" onclick="closeEditModal()">&times;</button>
+        <h2>Edit Group</h2>
+        <input type="text" id="editGroupName" class="modal-input" placeholder="Group name">
+        <div class="modal-buttons">
+            <button class="modal-btn cancel-btn" onclick="closeEditModal()">Cancel</button>
+            <button class="modal-btn save-btn" onclick="saveGroup()">Save</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentSection = null;
+let groups = [];
+let editingIndex = -1;
+
+// Force modal on page load if no groups exist
+window.addEventListener('DOMContentLoaded', function() {
+    loadCurrentSection();
+    loadGroups();
+    renderGroups();
+    if(groups.length === 0){
+        addMoreGroups(); // show modal
+    }
+});
+
+function loadCurrentSection() {
+    try {
+        const saved = localStorage.getItem('currentSection');
+        currentSection = saved ? JSON.parse(saved) : null;
+        if(currentSection) {
+            document.getElementById('sectionTitle').textContent = `${currentSection.name} - Groups`;
+        }
+    } catch(e) { console.error('Failed to load section', e); }
+}
+
+function renderGroups() {
+    const container = document.getElementById('groupsContainer');
+    const emptyState = document.getElementById('emptyState');
+    if(groups.length === 0){ container.innerHTML=''; emptyState.style.display='block'; return; }
+    emptyState.style.display='none';
+    container.innerHTML = groups.map((group,index)=>`
+        <div class="group-card" onclick="goToGroupDashboard(${index})">
+            <div>
+                <h3 onclick="event.stopPropagation(); startInlineEdit(event, ${index})" title="Click to rename">${group.name}</h3>
+                <p>Students: ${group.students}</p>
+                <p style="font-size:12px;color:#777;margin-top:8px;">Created: ${group.createdDate}</p>
+            </div>
+            <div class="group-actions" onclick="event.stopPropagation()">
+                <button class="group-btn edit-btn" onclick="openEditModal(${index})">✎ Edit</button>
+                <button class="group-btn delete-btn" onclick="deleteGroup(${index})">🗑 Delete</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function goToGroupDashboard(index){
+    const g = groups[index];
+    try{
+        // store a lightweight reference instead of the full group object to avoid heavy serialization
+        localStorage.setItem('currentGroupId', String(g.id));
+        localStorage.setItem('currentGroupName', g.name);
+        if(currentSection) localStorage.setItem('currentSection', JSON.stringify(currentSection));
+    }catch(e){ console.error('Failed to set current group reference', e); }
+
+    window.location.href = 'group-dashboard.html';
+}
+
+function startInlineEdit(event,index){
+    event.stopPropagation();
+    const h3=event.target;
+    const currentName = groups[index].name;
+    h3.innerHTML = `<input type="text" class="inline-edit" value="${currentName}" style="padding:8px;border:2px solid #667eea;border-radius:4px;font-size:16px;font-weight:700;font-family:inherit;width:100%;">`;
+    const input = h3.querySelector('.inline-edit');
+    input.focus(); input.select();
+    function finishEdit(){
+        const newName=input.value.trim();
+        if(newName && newName!==currentName){ groups[index].name=newName; saveGroups(); }
+        renderGroups();
+    }
+    input.addEventListener('blur', finishEdit);
+    input.addEventListener('keypress', function(e){
+        if(e.key==='Enter'){ finishEdit(); } else if(e.key==='Escape'){ renderGroups(); }
+    });
+}
+
+function openEditModal(index){ editingIndex=index; document.getElementById('editGroupName').value=groups[index].name; document.getElementById('editModal').classList.add('show'); document.getElementById('editGroupName').focus(); }
+function closeEditModal(){ document.getElementById('editModal').classList.remove('show'); editingIndex=-1; }
+function saveGroup(){ 
+    if(editingIndex===-1) return;
+    const newName = document.getElementById('editGroupName').value.trim();
+    if(!newName){ alert('Group name cannot be empty'); return; }
+    groups[editingIndex].name=newName;
+    saveGroups(); renderGroups(); closeEditModal();
+}
+
+function deleteGroup(index){
+    if(confirm(`Are you sure you want to delete "${groups[index].name}"?`)){
+        groups.splice(index,1);
+        saveGroups();
+        renderGroups();
+    }
+}
+
+function addMoreGroups(){ document.getElementById('addMoreModal').classList.add('show'); document.getElementById('addMoreCount').focus(); }
+function closeAddMoreModal(){ 
+    if(groups.length === 0){
+        alert('You must add at least 1 group to proceed!');
+        return; 
+    }
+    document.getElementById('addMoreModal').classList.remove('show'); 
+}
+
+function confirmAddMore(){
+    const count = parseInt(document.getElementById('addMoreCount').value);
+    if(isNaN(count)||count<1||count>20){ alert('Please enter a number between 1 and 20'); return; }
+    for(let i=0;i<count;i++){
+        const newIndex = groups.length + 1;
+        groups.push({
+            id: Date.now()+i,
+            name: `Group ${newIndex}`,
+            students:0,
+            createdDate: new Date().toLocaleDateString(),
+            chapters:[
+                {name:"Chapter 1", submitted:false, delayDays:0},
+                {name:"Chapter 2", submitted:false, delayDays:0},
+                {name:"Chapter 3", submitted:false, delayDays:0}
+            ]
+        });
+    }
+    saveGroups();
+    renderGroups();
+    closeAddMoreModal();
+    document.getElementById('addMoreCount').value=1;
+}
+
+function saveGroups(){
+    try{
+        const allSectionGroups = JSON.parse(localStorage.getItem('allSectionGroups')) || {};
+        if(!currentSection) return;
+        allSectionGroups[currentSection.name] = groups;
+        localStorage.setItem('allSectionGroups', JSON.stringify(allSectionGroups));
+    }catch(e){ console.error('Failed to save groups',e); }
+}
+
+function loadGroups(){
+    try{
+        const allSectionGroups = JSON.parse(localStorage.getItem('allSectionGroups')) || {};
+        groups = currentSection ? allSectionGroups[currentSection.name] || [] : [];
+    }catch(e){ groups=[]; }
+}
+
+function goBack(){ window.location.href='Adviser_dashboard.html'; }
+function logout(){
+    localStorage.removeItem('loggedInUser');
+    localStorage.removeItem('userRole');
+    localStorage.removeItem('currentSection');
+    localStorage.removeItem('currentSectionIndex');
+    window.location.href='login.html';
+}
+
+// Prevent closing modal by clicking outside
+window.addEventListener('click', function(event){
+    const editModal = document.getElementById('editModal');
+    const addMoreModal = document.getElementById('addMoreModal');
+
+    if(event.target === editModal) closeEditModal();
+    
+    if(event.target === addMoreModal){
+        if(groups.length === 0){
+            alert('You must add at least 1 group to proceed!');
+            return;
+        }
+        closeAddMoreModal();
+    }
+});
+
+document.addEventListener('keypress', function(event){
+    if(event.key==='Enter'){
+        if(document.getElementById('editModal').classList.contains('show')) saveGroup();
+        else if(document.getElementById('addMoreModal').classList.contains('show')) confirmAddMore();
+    }
+});
+</script>
+</body>
+</html>

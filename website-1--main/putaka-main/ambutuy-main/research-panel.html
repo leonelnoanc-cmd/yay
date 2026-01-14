@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Research Paper Editor</title>
+
+    <!-- Quill CSS -->
+    <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            overflow-x: hidden;
+        }
+
+        .main-container {
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Left side - Editor */
+        .editor-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        /* Right side - Reference Panel */
+        .reference-panel {
+            width: 350px;
+            background: white;
+            border-left: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s ease;
+        }
+
+        .reference-panel.collapsed {
+            transform: translateX(100%);
+        }
+
+        .reference-header {
+            padding: 20px;
+            background: #007bff;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .reference-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .toggle-panel-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 5px 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 12px;
+        }
+
+        .toggle-panel-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .btn-nav {
+            background:#007bff;
+            color:#fff;
+            padding:6px 10px;
+            border-radius:4px;
+            text-decoration:none;
+            font-size:13px;
+            display:inline-block;
+            margin-bottom:12px;
+        }
+
+        .btn-nav:hover{ background:#0056b3; }
+
+        .reference-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .reference-item {
+            margin-bottom: 15px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-left: 3px solid #007bff;
+            border-radius: 4px;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .reference-actions {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .reference-actions button {
+            width: 100%;
+            padding: 10px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .reference-actions button:hover {
+            background: #218838;
+        }
+
+        .empty-references {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: transparent;
+            padding: 20px;
+        }
+
+        h2 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        /* Toolbar */
+        #toolbar {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .line-spacing-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background: white;
+            margin-left: 12px;
+        }
+
+        .line-spacing-control label {
+            font-size: 13px;
+            color: #444;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .line-spacing-number {
+            font-size: 14px;
+            font-weight: bold;
+            color: #007bff;
+            min-width: 35px;
+            text-align: center;
+        }
+
+        .line-spacing-buttons {
+            display: flex;
+            gap: 2px;
+        }
+
+        .line-spacing-buttons button {
+            padding: 2px 8px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            background: white;
+            cursor: pointer;
+            border-radius: 3px;
+            line-height: 1;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .line-spacing-buttons button:hover {
+            background: #f0f0f0;
+        }
+
+        /* Ruler */
+        #ruler {
+            width: 210mm;
+            height: 24px;
+            background: #f0f0f0;
+            position: relative;
+            margin: 0 auto 10px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+
+        .margin-handle {
+            position: absolute;
+            width: 4px;
+            height: 20px;
+            background: #007bff;
+            cursor: ew-resize;
+            top: 2px;
+            z-index: 4;
+        }
+
+        .margin-label {
+            position: absolute;
+            bottom: calc(100% + 6px);
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.75);
+            color: #fff;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 120ms ease-in-out;
+        }
+
+        .margin-label.visible {
+            opacity: 1;
+        }
+
+        #ruler .ticks {
+            position: absolute;
+            left: 0;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .tick {
+            position: absolute;
+            bottom: 2px;
+            width: 1px;
+            background: #444;
+        }
+
+        .tick.short { height: 6px; }
+        .tick.medium { height: 10px; }
+        .tick.long { height: 14px; background: #000; }
+
+        .tick-label {
+            position: absolute;
+            bottom: 18px;
+            transform: translateX(-50%);
+            font-size: 10px;
+            color: #333;
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        .margin-guide {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: rgba(0,0,0,0.28);
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* Editor */
+        #editor {
+            height: auto;
+            min-height: 400px;
+        }
+
+        .ql-editor {
+            font-family: "Bookman Old Style", serif;
+            font-size: 12pt;
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            padding: 1in;
+            box-sizing: border-box;
+            background-color: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .ql-editor p {
+            margin: 0;
+        }
+
+        /* Custom Context Menu */
+        .context-menu {
+            position: fixed;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            padding: 8px 0;
+            z-index: 10000;
+            display: none;
+            min-width: 200px;
+        }
+
+        .context-menu.active {
+            display: block;
+        }
+
+        .context-menu-item {
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .context-menu-item:hover {
+            background: #f0f0f0;
+        }
+
+        .context-menu-item .icon {
+            font-size: 16px;
+        }
+
+        /* Research Modal */
+        .research-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+
+        .research-modal.active {
+            display: flex;
+        }
+
+        .research-modal-content {
+            background: white;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .research-modal-header {
+            padding: 20px;
+            background: #007bff;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .research-modal-header h3 {
+            font-size: 18px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .research-modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .search-info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .search-info strong {
+            color: #007bff;
+        }
+
+        .research-results {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .research-card {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            background: #f9f9f9;
+            transition: all 0.2s;
+        }
+
+        .research-card:hover {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .research-card h4 {
+            color: #007bff;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        .research-card p {
+            color: #555;
+            line-height: 1.6;
+            font-size: 13px;
+            margin-bottom: 10px;
+        }
+
+        .research-card .citation {
+            background: white;
+            padding: 10px;
+            border-left: 3px solid #007bff;
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .research-card button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            margin-top: 10px;
+        }
+
+        .research-card button:hover {
+            background: #218838;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .done-btn {
+            margin-top: 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+            padding: 12px 24px;
+            border-radius: 5px;
+            font-size: 14px;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .done-btn:hover {
+            background: #0056b3;
+        }
+
+        @media print {
+            .ql-editor {
+                size: A4;
+                margin: 0;
+                padding: 1in;
+                box-shadow: none;
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="main-container">
+    <!-- Editor Section -->
+    <div class="editor-section">
+        <div class="container">
+            <h2>Research Paper Editor</h2>
+            <h2>Research Paper Editor</h2>
+            <a class="btn-nav" href="researchpaper_creation.html">Back to Paper Creator</a>
+            <!-- Toolbar -->
+            <div id="toolbar" class="ql-toolbar ql-snow">
+                <span class="ql-formats">
+                    <button class="ql-bold" title="Bold"></button>
+                    <button class="ql-italic" title="Italic"></button>
+                    <select class="ql-background" title="Highlight"></select>
+                </span>
+                <span class="ql-formats">
+                    <button class="ql-list" value="ordered" title="Numbered list"></button>
+                    <button class="ql-list" value="bullet" title="Bulleted list"></button>
+                </span>
+                <span class="ql-formats">
+                    <select class="ql-align" title="Alignment"></select>
+                </span>
+                <span class="ql-formats">
+                    <button class="ql-image" title="Insert image"></button>
+                    <button class="ql-clean" title="Remove formatting"></button>
+                </span>
+                
+                <div class="line-spacing-control">
+                    <label>Line Spacing:</label>
+                    <span class="line-spacing-number" id="lineSpacingDisplay">1.5</span>
+                    <div class="line-spacing-buttons">
+                        <button onclick="decreaseLineSpacing()" title="Decrease">−</button>
+                        <button onclick="increaseLineSpacing()" title="Increase">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ruler -->
+            <div id="ruler">
+                <div class="margin-handle" id="leftHandle" style="left: 96px;"></div>
+                <div class="margin-label" id="leftLabel">1.00"</div>
+                <div class="ticks" id="ticks"></div>
+                <div class="margin-handle" id="rightHandle"></div>
+                <div class="margin-label" id="rightLabel">1.00"</div>
+            </div>
+
+            <!-- Editor -->
+            <div id="editor"></div>
+
+            <button class="done-btn" onclick="submitPaper()">Save & Export Paper</button>
+        </div>
+    </div>
+
+    <!-- Reference Panel -->
+    <div class="reference-panel" id="referencePanel">
+        <div class="reference-header">
+            <h3>References (APA Format)</h3>
+            <button class="toggle-panel-btn" onclick="toggleReferencePanel()">Hide</button>
+        </div>
+        <div class="reference-content" id="referenceContent">
+            <div class="empty-references">
+                <p>📚 No references yet</p>
+                <p style="font-size: 12px; margin-top: 10px;">Right-click on text and select "Find Research" to add references</p>
+            </div>
+        </div>
+        <div class="reference-actions">
+            <button onclick="copyAllReferences()">📋 Copy All References</button>
+        </div>
+    </div>
+</div>
+
+<!-- Custom Context Menu -->
+<div class="context-menu" id="contextMenu">
+    <div class="context-menu-item" onclick="findRRL()">
+        <span class="icon">📚</span>
+        <span>Find RRL (Review of Related Literature)</span>
+    </div>
+    <div class="context-menu-item" onclick="findRRS()">
+        <span class="icon">🔬</span>
+        <span>Find RRS (Review of Related Studies)</span>
+    </div>
+</div>
+
+<!-- Research Modal -->
+<div class="research-modal" id="researchModal">
+    <div class="research-modal-content">
+        <div class="research-modal-header">
+            <h3>Research Assistant</h3>
+            <button class="close-modal" onclick="closeResearchModal()">×</button>
+        </div>
+        <div class="research-modal-body" id="researchModalBody">
+            <div class="loading">
+                <p>🔍 Searching for relevant research...</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quill JS -->
+<script src="https://cdn.quilljs.com/1.3.7/quill.js"></script>
+
+<script>
+    // Initialize Quill
+    const quill = new Quill('#editor', {
+        theme: 'snow',
+        modules: {
+            toolbar: '#toolbar'
+        }
+    });
+
+    // Global variables
+    let selectedText = '';
+    let references = [];
+    const lineSpacingDisplay = document.getElementById('lineSpacingDisplay');
+    let currentLineSpacing = 1.5;
+    const spacingOptions = [1.0, 1.15, 1.5, 2.0, 2.5, 3.0];
+
+    // Initialize editor with placeholder
+    quill.setText('Start writing your research paper here...\n\nTip: Highlight any text and right-click to find related research and literature.');
+
+    // Line spacing functions
+    function applyLineSpacing(value) {
+        currentLineSpacing = value;
+        lineSpacingDisplay.textContent = value.toFixed(2);
+        const editor = quill && quill.root ? quill.root : document.querySelector('.ql-editor');
+        const allParagraphs = editor ? editor.querySelectorAll('p') : [];
+        allParagraphs.forEach(p => p.style.lineHeight = value);
+    }
+
+    function increaseLineSpacing() {
+        const currentIndex = spacingOptions.indexOf(currentLineSpacing);
+        if (currentIndex < spacingOptions.length - 1) {
+            applyLineSpacing(spacingOptions[currentIndex + 1]);
+        }
+    }
+
+    function decreaseLineSpacing() {
+        const currentIndex = spacingOptions.indexOf(currentLineSpacing);
+        if (currentIndex > 0) {
+            applyLineSpacing(spacingOptions[currentIndex - 1]);
+        }
+    }
+
+    // Ruler functionality
+    const leftHandle = document.getElementById('leftHandle');
+    const rightHandle = document.getElementById('rightHandle');
+    const ruler = document.getElementById('ruler');
+    const leftLabel = document.getElementById('leftLabel');
+    const rightLabel = document.getElementById('rightLabel');
+    const ticksContainer = document.getElementById('ticks');
+    let isDragging = false;
+    let currentHandle = null;
+
+    function generateRulerTicks() {
+        if (!ticksContainer) return;
+        ticksContainer.innerHTML = '';
+        const pxPerInch = 96;
+        const subdivisions = 8;
+        const totalPx = ruler.offsetWidth;
+        const totalInches = Math.ceil(totalPx / pxPerInch);
+
+        for (let i = 0; i <= totalInches * subdivisions; i++) {
+            const posPx = i * (pxPerInch / subdivisions);
+            const tick = document.createElement('div');
+            tick.className = 'tick';
+
+            if (i % subdivisions === 0) {
+                tick.classList.add('long');
+                const label = document.createElement('div');
+                label.className = 'tick-label';
+                label.textContent = (i / subdivisions) + '"';
+                label.style.left = posPx + 'px';
+                ticksContainer.appendChild(label);
+            } else if (i % 4 === 0) {
+                tick.classList.add('medium');
+            } else {
+                tick.classList.add('short');
+            }
+            tick.style.left = posPx + 'px';
+            ticksContainer.appendChild(tick);
+        }
+    }
+
+    function updateMargins() {
+        const pxPerInch = 96;
+        const rulerWidth = ruler.offsetWidth;
+        const editor = quill && quill.root ? quill.root : document.querySelector('.ql-editor');
+
+        const leftPx = parseFloat(leftHandle.style.left) || 96;
+        const leftInch = leftPx / pxPerInch;
+
+        const rightPx = parseFloat(rightHandle.style.left) || (rulerWidth - 96);
+        const rightInch = (rulerWidth - rightPx) / pxPerInch;
+
+        if (editor) {
+            editor.style.paddingLeft = leftInch + 'in';
+            editor.style.paddingRight = rightInch + 'in';
+        }
+
+        leftLabel.textContent = leftInch.toFixed(2) + '"';
+        rightLabel.textContent = rightInch.toFixed(2) + '"';
+
+        leftLabel.style.left = leftPx + 'px';
+        rightLabel.style.left = rightPx + 'px';
+    }
+
+    leftHandle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        isDragging = true;
+        currentHandle = 'left';
+        leftLabel.classList.add('visible');
+    });
+
+    rightHandle.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        isDragging = true;
+        currentHandle = 'right';
+        rightLabel.classList.add('visible');
+    });
+
+    document.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+
+        const rulerRect = ruler.getBoundingClientRect();
+        let x = e.clientX - rulerRect.left;
+        x = Math.max(0, Math.min(x, ruler.offsetWidth));
+
+        if (currentHandle === 'left') {
+            const rightPos = parseFloat(rightHandle.style.left) || (ruler.offsetWidth - 96);
+            x = Math.min(x, rightPos - 10);
+            leftHandle.style.left = x + 'px';
+        } else if (currentHandle === 'right') {
+            const leftPos = parseFloat(leftHandle.style.left) || 96;
+            x = Math.max(x, leftPos + 10);
+            rightHandle.style.left = x + 'px';
+        }
+
+        updateMargins();
+    });
+
+    document.addEventListener('mouseup', () => {
+        if (isDragging) {
+            isDragging = false;
+            currentHandle = null;
+            leftLabel.classList.remove('visible');
+            rightLabel.classList.remove('visible');
+        }
+    });
+
+    // Context Menu
+    const contextMenu = document.getElementById('contextMenu');
+    const editor = quill && quill.root ? quill.root : document.querySelector('.ql-editor');
+
+    editor.addEventListener('contextmenu', (e) => {
+        e.preventDefault();
+        
+        const selection = quill.getSelection();
+        if (selection && selection.length > 0) {
+            selectedText = quill.getText(selection.index, selection.length).trim();
+            
+            if (selectedText.length > 0) {
+                contextMenu.style.left = e.pageX + 'px';
+                contextMenu.style.top = e.pageY + 'px';
+                contextMenu.classList.add('active');
+            }
+        }
+    });
+
+    document.addEventListener('click', () => {
+        contextMenu.classList.remove('active');
+    });
+
+    // Global variable to store current search results and type
+    let currentSearchResults = [];
+    let currentSearchType = ''; // 'RRL' or 'RRS'
+
+    // Research Modal Functions - Separate for RRL and RRS
+    async function findRRL() {
+        if (!selectedText) return;
+        currentSearchType = 'RRL';
+        
+        const modal = document.getElementById('researchModal');
+        const modalBody = document.getElementById('researchModalBody');
+        
+        modal.classList.add('active');
+        modalBody.innerHTML = `
+            <div class="search-info">
+                <strong>Finding RRL (Review of Related Literature) for:</strong> "${selectedText}"
+            </div>
+            <div class="loading">
+                <p>📚 Searching for theoretical frameworks and literature...</p>
+                <p style="font-size: 12px; margin-top: 10px;">Finding academic literature, books, and theoretical concepts</p>
+            </div>
+        `;
+        
+        try {
+            await performRRLSearch(selectedText);
+        } catch (error) {
+            modalBody.innerHTML = `
+                <div class="search-info">
+                    <strong>Search for RRL:</strong> "${selectedText}"
+                </div>
+                <div style="padding: 40px; text-align: center; color: #dc3545;">
+                    <p>⚠️ Unable to perform search at this time.</p>
+                    <p style="font-size: 13px; margin-top: 10px;">Error: ${error.message}</p>
+                    <button onclick="closeResearchModal()" style="margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Close</button>
+                </div>
+            `;
+        }
+    }
+
+    async function findRRS() {
+        if (!selectedText) return;
+        currentSearchType = 'RRS';
+        
+        const modal = document.getElementById('researchModal');
+        const modalBody = document.getElementById('researchModalBody');
+        
+        modal.classList.add('active');
+        modalBody.innerHTML = `
+            <div class="search-info">
+                <strong>Finding RRS (Review of Related Studies) for:</strong> "${selectedText}"
+            </div>
+            <div class="loading">
+                <p>🔬 Searching for empirical studies and research...</p>
+                <p style="font-size: 12px; margin-top: 10px;">Finding experimental studies, surveys, and research findings</p>
+            </div>
+        `;
+        
+        try {
+            await performRRSSearch(selectedText);
+        } catch (error) {
+            modalBody.innerHTML = `
+                <div class="search-info">
+                    <strong>Search for RRS:</strong> "${selectedText}"
+                </div>
+                <div style="padding: 40px; text-align: center; color: #dc3545;">
+                    <p>⚠️ Unable to perform search at this time.</p>
+                    <p style="font-size: 13px; margin-top: 10px;">Error: ${error.message}</p>
+                    <button onclick="closeResearchModal()" style="margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Close</button>
+                </div>
+            `;
+        }
+    }
+
+    async function performRRLSearch(query) {
+        const modalBody = document.getElementById('researchModalBody');
+        
+        try {
+            const proxyUrl = 'http://localhost:3000/api/search';
+            const proxyResp = await fetch(proxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query })
+            });
+
+            if (!proxyResp.ok) {
+                const body = await proxyResp.text();
+                throw new Error(`Proxy request failed: ${proxyResp.status} ${body}`);
+            }
+
+            const json = await proxyResp.json();
+
+            if (json.papers && Array.isArray(json.papers)) {
+                currentSearchResults = json.papers;
+                displayResearchResults(json.papers, 'RRL');
+                return;
+            }
+
+            if (json.raw) {
+                modalBody.innerHTML = `
+                    <div style="padding:20px;">
+                        <div class="search-info"><strong>Search for:</strong> "${selectedText}"</div>
+                        <div style="margin-top:12px;padding:12px;background:#f8f9fa;border-radius:6px;max-height:300px;overflow:auto;white-space:pre-wrap;">${json.raw}</div>
+                        <div style="margin-top:12px;text-align:center;"><button onclick="closeResearchModal()" style="padding:8px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;">Close</button></div>
+                    </div>
+                `;
+                return;
+            }
+
+            throw new Error('Unexpected proxy response');
+
+        } catch (error) {
+            console.error('Search error:', error);
+            throw error;
+        }
+    }
+
+    async function performRRSSearch(query) {
+        const modalBody = document.getElementById('researchModalBody');
+        
+        try {
+            const proxyUrl = 'http://localhost:3000/api/search';
+            const proxyResp = await fetch(proxyUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ query })
+            });
+
+            if (!proxyResp.ok) {
+                const body = await proxyResp.text();
+                throw new Error(`Proxy request failed: ${proxyResp.status} ${body}`);
+            }
+
+            const json = await proxyResp.json();
+
+            let studies;
+            if (json.papers && Array.isArray(json.papers)) {
+                studies = json.papers;
+            } else if (json.raw) {
+                modalBody.innerHTML = `
+                    <div style="padding:20px;">
+                        <div class="search-info"><strong>Search for:</strong> "${selectedText}"</div>
+                        <div style="margin-top:12px;padding:12px;background:#f8f9fa;border-radius:6px;max-height:300px;overflow:auto;white-space:pre-wrap;">${json.raw}</div>
+                        <div style="margin-top:12px;text-align:center;"><button onclick="closeResearchModal()" style="padding:8px 12px;background:#007bff;color:#fff;border:none;border-radius:4px;">Close</button></div>
+                    </div>
+                `;
+                return;
+            } else {
+                throw new Error('Unexpected proxy response');
+            }
+
+            currentSearchResults = studies;
+            displayResearchResults(studies, 'RRS');
+
+        } catch (error) {
+            console.error('Search error:', error);
+            throw error;
+        }
+    }
+
+    function displayResearchResults(items, type) {
+        const modalBody = document.getElementById('researchModalBody');
+        
+        if (!items || items.length === 0) {
+            modalBody.innerHTML = `
+                <div class="search-info">
+                    <strong>Search for ${type}:</strong> "${selectedText}"
+                </div>
+                <div style="padding: 40px; text-align: center; color: #666;">
+                    <p>No ${type === 'RRL' ? 'literature' : 'studies'} found. Please try a different search term.</p>
+                    <button onclick="closeResearchModal()" style="margin-top: 20px; padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer;">Close</button>
+                </div>
+            `;
+            return;
+        }
+
+        const typeLabel = type === 'RRL' ? 'Literature Sources' : 'Research Studies';
+        const typeIcon = type === 'RRL' ? '📚' : '🔬';
+        
+        modalBody.innerHTML = `
+            <div class="search-info">
+                <strong>Found ${items.length} ${typeLabel} for:</strong> "${selectedText}"
+            </div>
+            <div class="research-results">
+                ${items.map((item, index) => {
+                    const citation = generateAPACitation(item);
+                    
+                    return `
+                        <div class="research-card">
+                            <h4>${typeIcon} ${item.title}</h4>
+                            <p><strong>${type === 'RRL' ? 'Literature Type:' : 'Study Type:'}</strong> ${item.type || 'Research Paper'}</p>
+                            <p>${item.summary}</p>
+                            <div class="citation"><strong>APA Citation:</strong><br>${citation}</div>
+                            <button onclick="insertResearch(${index})">✓ Insert This ${type}</button>
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+        `;
+    }
+
+    function generateAPACitation(item) {
+        let citation = '';
+        
+        if (item.authors) {
+            citation += item.authors;
+        }
+        
+        if (item.year) {
+            citation += ` (${item.year}).`;
+        }
+        
+        if (item.title) {
+            citation += ` ${item.title}.`;
+        }
+        
+        // For books (RRL)
+        if (item.publisher) {
+            citation += ` ${item.publisher}.`;
+        }
+        
+        // For journal articles (RRS)
+        if (item.journal) {
+            citation += ` <em>${item.journal}</em>`;
+        }
+        
+        if (item.volume) {
+            citation += `, ${item.volume}`;
+        }
+        
+        if (item.issue) {
+            citation += `(${item.issue})`;
+        }
+        
+        if (item.pages) {
+            citation += `, ${item.pages}.`;
+        }
+        
+        if (item.doi) {
+            citation += ` ${item.doi}`;
+        }
+        
+        return citation;
+    }
+
+    function insertResearch(index) {
+        const item = currentSearchResults[index];
+        
+        if (!item) {
+            alert('Error: Research data not found');
+            return;
+        }
+        
+        // Generate in-text citation
+        let inTextCitation = '';
+        if (item.authors && item.year) {
+            const firstAuthor = item.authors.split(',')[0].trim();
+            const authorCount = (item.authors.match(/,/g) || []).length + 1;
+            
+            if (authorCount === 1) {
+                inTextCitation = `(${firstAuthor}, ${item.year})`;
+            } else if (authorCount === 2) {
+                const authors = item.authors.split('&').map(a => a.split(',')[0].trim());
+                inTextCitation = `(${authors.join(' & ')}, ${item.year})`;
+            } else {
+                inTextCitation = `(${firstAuthor} et al., ${item.year})`;
+            }
+        }
+        
+        // Create research text with citation
+        const researchText = `\n\n${item.summary} ${inTextCitation}`;
+        
+        // Insert text into editor
+        const selection = quill.getSelection();
+        if (selection) {
+            quill.insertText(selection.index + selection.length, researchText);
+        } else {
+            quill.insertText(quill.getLength(), researchText);
+        }
+        
+        // Add to references
+        const fullCitation = generateAPACitation(item);
+        addReference(fullCitation);
+        
+        closeResearchModal();
+        
+        const typeLabel = currentSearchType === 'RRL' ? 'Literature' : 'Study';
+        alert(`✓ ${typeLabel} added successfully!\n\nThe reference has been automatically added to your reference list in APA format.`);
+    }
+
+    function addReference(citation) {
+        if (!references.includes(citation)) {
+            references.push(citation);
+            references.sort(); // Sort alphabetically
+            updateReferencePanel();
+        }
+    }
+
+    function updateReferencePanel() {
+        const content = document.getElementById('referenceContent');
+        
+        if (references.length === 0) {
+            content.innerHTML = `
+                <div class="empty-references">
+                    <p>📚 No references yet</p>
+                    <p style="font-size: 12px; margin-top: 10px;">Right-click on text and select "Find Research" to add references</p>
+                </div>
+            `;
+        } else {
+            content.innerHTML = references.map(ref => `
+                <div class="reference-item">${ref}</div>
+            `).join('');
+        }
+    }
+
+    function closeResearchModal() {
+        document.getElementById('researchModal').classList.remove('active');
+    }
+
+    function toggleReferencePanel() {
+        const panel = document.getElementById('referencePanel');
+        panel.classList.toggle('collapsed');
+        
+        const btn = panel.querySelector('.toggle-panel-btn');
+        btn.textContent = panel.classList.contains('collapsed') ? 'Show' : 'Hide';
+    }
+
+    function copyAllReferences() {
+        if (references.length === 0) {
+            alert('No references to copy');
+            return;
+        }
+        
+        const text = references.join('\n\n');
+        navigator.clipboard.writeText(text).then(() => {
+            alert('✓ All references copied to clipboard!');
+        });
+    }
+
+    function submitPaper() {
+        if (quill.getText().trim().length < 10) {
+            alert("Please write some content first.");
+            return;
+        }
+        
+        alert("Paper saved successfully!\n\nYour paper and references have been prepared for export.");
+    }
+
+    // Initialize
+    generateRulerTicks();
+    rightHandle.style.left = (ruler.offsetWidth - 96) + 'px';
+    updateMargins();
+    applyLineSpacing(1.5);
+
+    // Monitor new paragraphs
+    const observer = new MutationObserver(() => {
+        const editor = quill && quill.root ? quill.root : document.querySelector('.ql-editor');
+        const allParagraphs = editor ? editor.querySelectorAll('p') : [];
+        allParagraphs.forEach(p => {
+            if (!p.style.lineHeight) {
+                p.style.lineHeight = currentLineSpacing;
+            }
+        });
+    });
+
+    // Observe the editor for new blocks or subtree changes so newly created paragraphs inherit spacing
+    observer.observe(quill && quill.root ? quill.root : document.querySelector('.ql-editor'), { childList: true, subtree: true });

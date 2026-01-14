@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Student Dashboard</title>
+
+<style>
+* { box-sizing: border-box; }
+body { margin:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f5f7fa; }
+
+/* HEADER */
+.header {
+    background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    color:white;
+    padding:20px 40px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+.logout-btn {
+    background: rgba(255,255,255,0.2);
+    color:white;
+    border:1px solid white;
+    padding:8px 16px;
+    border-radius:6px;
+    cursor:pointer;
+}
+.logout-btn:hover { background: rgba(255,255,255,0.3); }
+
+/* CONTAINER */
+.container {
+    max-width:1400px;
+    margin:0 auto;
+    padding:40px 20px;
+    display:grid;
+    grid-template-columns:100px 1fr;
+    gap:20px;
+}
+
+/* SIDEBAR */
+.sidebar {
+    background:white;
+    border-radius:12px;
+    padding:16px;
+    position:sticky;
+    top:100px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+.add-section-card {
+    background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    cursor:pointer;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+.add-section-card:hover { transform:scale(1.1); }
+.add-section-card .plus-icon { font-size:40px; color:white; }
+
+.analytics-card {
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    background:#f0f3ff;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    transition:0.3s;
+}
+.analytics-card span {
+    font-size:10px;
+    font-weight:600;
+    margin-top:2px;
+}
+.analytics-card:hover {
+    background:#e0e7ff;
+    transform:scale(1.1);
+}
+
+/* TIMELINE */
+.timeline-card {
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#ffb86b 0%,#ff7eb6 100%);
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    transition:0.3s;
+}
+.timeline-card span {
+    font-size:10px;
+    font-weight:600;
+    margin-top:2px;
+}
+.timeline-card:hover { transform:scale(1.1); }
+
+/* MAIN CONTENT */
+.info-box {
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    margin-bottom:30px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+.sections-container {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:25px;
+}
+
+.section-card {
+    background:#b0c4de;
+    padding:30px;
+    border-radius:15px;
+    min-height:180px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    cursor:pointer;
+    box-shadow:0 2px 12px rgba(0,0,0,0.1);
+    border: 2px solid transparent;
+    transition: all 0.3s;
+}
+.section-card:hover {
+    transform:translateY(-6px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.15);
+    border-color:#667eea;
+}
+.section-card h3 {
+    margin:0 0 12px 0;
+    font-size:20px;
+    font-weight:700;
+}
+.section-card p {
+    margin:0 0 12px 0;
+    font-size:14px;
+    color:#333;
+}
+
+/* Buttons */
+.section-actions { display:flex; gap:10px; justify-content:center; }
+.section-btn { padding:8px 14px; border:none; border-radius:5px; cursor:pointer; font-size:13px; font-weight:600; transition:all 0.2s; }
+.share-btn { background:#27ae60; color:white; }
+.share-btn:hover { background:#229954; }
+.rename-btn { background:#667eea; color:white; }
+.rename-btn:hover { background:#5568d3; }
+.delete-btn { background:#e74c3c; color:white; }
+.delete-btn:hover { background:#c0392b; }
+
+.empty-state {
+    text-align:center;
+    padding:60px;
+    color:#999;
+}
+
+/* MODAL */
+.modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.4); justify-content:center; align-items:center; }
+.modal.show { display:flex; }
+.modal-content { background:white; padding:30px; border-radius:12px; width:90%; max-width:400px; }
+.modal-input { width:100%; padding:10px; margin-bottom:20px; }
+.modal-buttons { display:flex; justify-content:flex-end; gap:10px; }
+.modal-btn { padding:10px 20px; border:none; border-radius:6px; cursor:pointer; font-weight:600; transition:all 0.3s; }
+.save-btn { background:#27ae60; color:white; }
+.save-btn:hover { background:#229954; }
+.cancel-btn { background:#ddd; color:#333; }
+.cancel-btn:hover { background:#ccc; }
+
+/* small student tweaks */
+.welcome-box { background:linear-gradient(135deg,#667eea,#764ba2); color:white; padding:20px; border-radius:12px; margin-bottom:20px; }
+
+/* Group label shown beneath header */
+.group-info { font-size:14px; color:#333; margin-bottom:6px; }
+.header .group-info { color: rgba(255,255,255,0.95); margin-bottom:0; font-weight:600; font-size:14px; }
+
+.dashboard-sections { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:20px; }
+.dashboard-card { background:white; padding:20px; border-radius:12px; box-shadow:0 4px 14px rgba(0,0,0,0.06); }
+.progress-circle { font-size:42px; font-weight:700; color:#667eea; text-align:center; }
+.progress-label { text-align:center; color:#666; }
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <div style="display:flex;flex-direction:column;gap:6px;">
+        <h1> Student Dashboard</h1>
+        <div id="groupInfo" class="group-info" aria-live="polite" style="font-weight:600;font-size:14px;opacity:0.95;"></div>
+    </div>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <!-- Overview has been removed -->
+
+        <div class="analytics-card" title="Research Paper Creation" onclick="window.location.href='researchpaper_creation.html'">
+            ✍️<span>Create</span>
+        </div>
+
+        <div class="analytics-card" title="Submit Paper" onclick="(function(){ if(localStorage.getItem('currentSection')){}; window.location.href='submit.html'; })()">
+            📝<span>Submit</span>
+        </div>
+
+        <div class="analytics-card timeline-card" onclick="openTimelineModal()" title="Timeline">
+            🕒<span>Timeline</span>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="info-box welcome-box">
+            <h2>Welcome to Student Dashboard</h2>
+            <p>Track your progress, submit assignments, and communicate with your advisor.</p>
+        </div>
+
+        <!-- Due tomorrow banner (hidden when none) -->
+        <div id="dueNotifications" class="info-box" style="display:none;margin-top:10px;"> </div>
+
+        <!-- Student dashboard cards below -->
+        <div class="dashboard-sections" style="margin-top:30px;">
+            <div class="dashboard-card">
+                <h3>📈 Progress Percentage</h3>
+                <div class="progress-circle" id="overallProgress">0%</div>
+                <p class="progress-label">Overall research completion</p>
+            </div>
+
+            <div class="dashboard-card">
+                <h3>📝 Tasks</h3>
+                <ul class="task-list" id="tasksList">
+                    <!-- tasks due tomorrow will be populated here -->
+                </ul>
+                <div id="tasksEmpty" class="no-data" style="font-size:13px;color:#999;display:none;margin-top:8px;">No tasks due tomorrow.</div>
+            </div>
+
+
+        </div>
+
+
+        <div id="coursesContainer" class="empty-state">
+            <p>No courses assigned yet. Contact your advisor for enrollment.</p>
+        </div>
+
+    </div>
+
+    <!-- TIMELINE MODAL (read-only for students) -->
+    <div id="timelineModal" class="modal" aria-hidden="true">
+        <div class="modal-content">
+            <h2>Research Timeline</h2>
+            <div id="timelineList" style="max-height:240px;overflow:auto;margin-bottom:10px;">
+                <!-- entries will appear here -->
+            </div>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel-btn" onclick="closeTimelineModal()">Close</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+// Robust global fallback so timeline button works immediately even before other handlers attach
+window.openTimelineModal = function(){
+    try{
+        // If a more capable implementation is attached later, call it
+        if (typeof window._openTimelineModalInternal === 'function') return window._openTimelineModalInternal();
+        // Minimal fallback: build list from timelineSections or researchTimeline and show modal
+        const secsRaw = localStorage.getItem('timelineSections') || '[]';
+        const researchRaw = localStorage.getItem('researchTimeline') || '[]';
+        let entries = [];
+        try{
+            const secs = JSON.parse(secsRaw);
+            if(Array.isArray(secs) && secs.length){ entries = secs.map(s => ({ title: s.name || s.title || '', date: s.deadline || s.date || '' })); }
+            else { const r = JSON.parse(researchRaw || '[]'); if(Array.isArray(r) && r.length) entries = r.map(t => ({ title: t.title || t.name || '', date: t.date || '' })); }
+        }catch(e){ entries = []; }
+        const list = document.getElementById('timelineList'); if(list){ list.innerHTML = ''; if(!entries.length) list.innerHTML = '<div style="color:#777;padding:10px;">No timeline events yet.</div>'; else entries.forEach(t=>{ const div = document.createElement('div'); div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;"><div><strong>${t.title}</strong><div style="color:#666;font-size:12px">${t.date || ''}</div></div></div>`; list.appendChild(div); }); }
+        const m = document.getElementById('timelineModal'); if(m){ m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
+    }catch(err){ console.warn('openTimelineModal fallback failed', err); }
+};
+
+// Global close handler + UX helpers (overlay click + Escape key)
+window.closeTimelineModal = function(){
+    try{
+        if (typeof window._closeTimelineModalInternal === 'function') return window._closeTimelineModalInternal();
+        const m = document.getElementById('timelineModal'); if(m){ m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
+    }catch(err){ console.warn('closeTimelineModal fallback failed', err); }
+};
+
+// Close on overlay click
+document.addEventListener('click', function(e){ try{ const m = document.getElementById('timelineModal'); if(m && m.classList.contains('show') && e.target === m){ window.closeTimelineModal(); } }catch(_){} });
+// Close on Escape
+document.addEventListener('keydown', function(e){ try{ if(e.key === 'Escape'){ const m = document.getElementById('timelineModal'); if(m && m.classList.contains('show')) window.closeTimelineModal(); } }catch(_){} });
+
+/* Progress animation and dashboard behavior */
+document.addEventListener('DOMContentLoaded', () => {
+    // Progress animation
+    let target = 72;
+    let current = 0;
+    const el = document.getElementById('overallProgress');
+    const timer = setInterval(() => {
+        if (current >= target) clearInterval(timer);
+        else el.textContent = ++current + "%";
+    }, 15);
+
+    // Initialize variables
+    let sectionName = null;
+    let groupsFromUrl = [];
+    let currentGroup = null;
+
+    // Parse URL params
+    try {
+        const params = new URLSearchParams(location.search);
+        if (params.has('section')) {
+            sectionName = decodeURIComponent(params.get('section'));
+        }
+        if (params.has('groups')) {
+            try {
+                groupsFromUrl = JSON.parse(decodeURIComponent(params.get('groups')));
+            } catch(e) {
+                console.warn('Failed to parse groups param', e);
+            }
+        }
+    } catch(e) { console.warn('Failed to read URL params', e); }
+
+    // Fallback to localStorage
+    const storedSection = JSON.parse(localStorage.getItem('currentSection') || 'null');
+    if (!sectionName && storedSection) sectionName = storedSection.name || storedSection;
+
+    // Use groups from localStorage if not provided in URL
+    const allSectionGroups = JSON.parse(localStorage.getItem('allSectionGroups') || '{}');
+    const groupsFromStorage = sectionName ? (allSectionGroups[sectionName] || []) : [];
+    const groups = groupsFromUrl.length ? groupsFromUrl : groupsFromStorage;
+
+    // Determine current group
+    const storedCurrentGroup = JSON.parse(localStorage.getItem('currentGroup') || 'null');
+    if (storedCurrentGroup) currentGroup = storedCurrentGroup;
+    else if (groups.length) currentGroup = groups[0];
+
+    // Update UI
+    // Keep current section in storage for contextual navigation, and show chosen group below the header
+    if (sectionName) {
+        localStorage.setItem('currentSection', JSON.stringify({ name: sectionName }));
+    }
+
+    const groupInfoEl = document.getElementById('groupInfo');
+    function getGroupLabel(g){
+        if(!g) return null;
+        if(typeof g === 'string') return g;
+        return g.groupName || g.name || g.group || null;
+    }
+
+    function updateHeaderLabel(){
+        const storedGroup = JSON.parse(localStorage.getItem('currentGroup') || 'null');
+        const storedSection = JSON.parse(localStorage.getItem('currentSection') || 'null');
+        const curGroup = currentGroup || storedGroup;
+        const curSection = sectionName || (storedSection && (storedSection.name || storedSection));
+        const groupLabel = getGroupLabel(curGroup);
+
+        if(!groupInfoEl) return;
+        if(curSection && groupLabel){
+            groupInfoEl.textContent = 'Section: ' + curSection + ' • ' + groupLabel;
+            groupInfoEl.style.display = 'block';
+        } else if(curSection){
+            groupInfoEl.textContent = 'Section: ' + curSection;
+            groupInfoEl.style.display = 'block';
+        } else if(groupLabel){
+            groupInfoEl.textContent = groupLabel;
+            groupInfoEl.style.display = 'block';
+        } else {
+            groupInfoEl.style.display = 'none';
+        }
+    }
+
+    // Initial set and keep it in sync when storage changes, page regains focus, or becomes visible
+    updateHeaderLabel();
+    renderTasksFromTimeline();
+    window.addEventListener('storage', (e) => {
+        if(e.key === 'currentGroup' || e.key === 'currentSection') updateHeaderLabel();
+        if(e.key === 'timelineSections' || e.key === 'researchTimeline') { renderTasksFromTimeline(); }
+    });
+    document.addEventListener('visibilitychange', () => { if(!document.hidden) { updateHeaderLabel(); renderTasksFromTimeline(); } });
+    window.addEventListener('focus', () => { updateHeaderLabel(); renderTasksFromTimeline(); });
+
+    // TIMELINE: read-only viewer for students (loads advisor timeline entries)
+    let studentTimelineEntries = [];
+    function loadStudentTimeline(){
+        // Try multiple keys and shapes that advisors might have stored
+        const candidates = ['researchTimeline','researchTimeline_serialized','timelineSections','advisorTimeline','advisor_researchTimeline'];
+        let found = null;
+
+        for(const key of candidates){
+            const raw = localStorage.getItem(key);
+            if(!raw) continue;
+            try{
+                const parsed = JSON.parse(raw);
+                if(Array.isArray(parsed) && parsed.length){ found = { key, value: parsed }; break; }
+                // If it's an object with an entries array
+                if(parsed && Array.isArray(parsed.entries) && parsed.entries.length){ found = { key, value: parsed.entries }; break; }
+                // If it's an object with timeline or items
+                if(parsed && Array.isArray(parsed.timeline) && parsed.timeline.length){ found = { key, value: parsed.timeline }; break; }
+            }catch(e){
+                // not JSON — ignore
+            }
+        }
+
+        if(found){
+            const parsed = found.value;
+            studentTimelineEntries = parsed.map(t => {
+                if(!t) return null;
+                if(typeof t === 'string') return { title: t, date: '' };
+                return { title: t.title || t.name || t.label || '', date: t.date || t.deadline || t.when || '' };
+            }).filter(Boolean);
+            console.debug('[Student] loaded timeline from', found.key, studentTimelineEntries);
+            return;
+        }
+
+        // Final fallback: try timelineSections specifically
+        try{
+            const secs = JSON.parse(localStorage.getItem('timelineSections') || '[]');
+            if(Array.isArray(secs) && secs.length){
+                studentTimelineEntries = secs.map(s => ({ title: s.name || s.title || '', date: s.deadline || s.date || '' }));
+                console.debug('[Student] loaded timeline from timelineSections', studentTimelineEntries);
+                return;
+            }
+        }catch(e){ /* ignore */ }
+
+        // Nothing found yet — scan any localStorage key that mentions 'timeline' (robust catch-all)
+        try{
+            for(let i=0;i<localStorage.length;i++){
+                const key = localStorage.key(i);
+                if(!key) continue;
+                if(candidates.indexOf(key) !== -1) continue; // already checked
+                if(key.toLowerCase().indexOf('timeline') === -1) continue; // only keys mentioning timeline
+                const raw = localStorage.getItem(key);
+                if(!raw || typeof raw !== 'string') continue;
+
+                // Try JSON parse first
+                try{
+                    const p = JSON.parse(raw);
+                    let arr = [];
+                    if(Array.isArray(p)) arr = p;
+                    else if(p && Array.isArray(p.entries)) arr = p.entries;
+                    else if(p && Array.isArray(p.timeline)) arr = p.timeline;
+                    else if(p && Array.isArray(p.items)) arr = p.items;
+                    if(arr.length){
+                        studentTimelineEntries = arr.map(t => ({ title: t.title || t.name || t.label || '', date: t.date || t.deadline || t.when || '' })).filter(Boolean);
+                        console.debug('[Student] parsed timeline from key', key, studentTimelineEntries);
+                        return;
+                    }
+                    // If it's an object that looks like a single entry
+                    if(p && (p.title || p.name) && (p.date || p.deadline)){
+                        studentTimelineEntries = [{ title: p.title || p.name, date: p.date || p.deadline }];
+                        console.debug('[Student] parsed single-entry timeline from key', key, studentTimelineEntries);
+                        return;
+                    }
+                }catch(_){
+                    // not JSON — try regex extraction
+                    const pairs = [];
+                    const regex = /(?:title|name)\s*[:=]\s*['"]?([^'",\n\r]+)['"]?[,;\n\r].{0,60}?(?:date|deadline|when)\s*[:=]\s*['"]?([0-9T:\- ]{4,30})['"]?/ig;
+                    let m;
+                    while((m = regex.exec(raw)) !== null){
+                        pairs.push({ title: (m[1]||'').trim(), date: (m[2]||'').trim() });
+                    }
+                    if(pairs.length){
+                        studentTimelineEntries = pairs;
+                        console.debug('[Student] regex-extracted timeline from key', key, studentTimelineEntries);
+                        return;
+                    }
+                }
+            }
+        }catch(e){ console.warn('[Student] error scanning timeline-like localStorage keys', e); }
+
+        studentTimelineEntries = [];
+        console.debug('[Student] no timeline data found in localStorage for keys:', candidates.join(', '));
+    }
+
+    function openTimelineModal(){
+        loadStudentTimeline();
+        renderStudentTimeline();
+        const m = document.getElementById('timelineModal');
+        if(m) { m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
+    }
+    function closeTimelineModal(){
+        const m = document.getElementById('timelineModal');
+        if(m) { m.classList.remove('show'); m.setAttribute('aria-hidden','true'); }
+    }
+
+    function renderStudentTimeline(){
+        const list = document.getElementById('timelineList');
+        list.innerHTML = '';
+        console.debug('[Student] renderStudentTimeline entries:', studentTimelineEntries);
+        if(!studentTimelineEntries || !studentTimelineEntries.length){
+            // Show helpful debugging info so it's clear what keys exist in localStorage
+            let rawResearch = null;
+            let rawSections = null;
+            try{ rawResearch = localStorage.getItem('researchTimeline'); }catch(e){}
+            try{ rawSections = localStorage.getItem('timelineSections'); }catch(e){}
+            list.innerHTML = `
+                <div style="color:#777;padding:10px;">No timeline events yet.</div>
+                <div style="margin-top:10px;padding:8px;background:#fafafa;border:1px dashed #eee;font-size:12px;color:#444;">
+                    <strong>Debug info (localStorage):</strong>
+                    <div style="margin-top:6px;"><em>researchTimeline:</em><pre style="white-space:pre-wrap;max-height:120px;overflow:auto;background:#fff;padding:8px;border-radius:6px;border:1px solid #f0f0f0;">${escapeHtml(rawResearch)}</pre></div>
+                    <div style="margin-top:6px;"><em>timelineSections:</em><pre style="white-space:pre-wrap;max-height:120px;overflow:auto;background:#fff;padding:8px;border-radius:6px;border:1px solid #f0f0f0;">${escapeHtml(rawSections)}</pre></div>
+                </div>
+            `;
+            console.warn('[Student] No timeline entries found. researchTimeline:', rawResearch, 'timelineSections:', rawSections);
+            return;
+        }
+        studentTimelineEntries.forEach(t=>{
+            const div = document.createElement('div');
+            div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;"><div><strong>${t.title}</strong><div style="color:#666;font-size:12px">${t.date || ''}</div></div></div>`;
+            list.appendChild(div);
+        });
+    }
+
+    // small helper to safely render raw JSON into the modal
+    function escapeHtml(str){
+        if(str === null || str === undefined) return 'null';
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // Initialize timeline entries at load so the modal shows created events immediately
+    loadStudentTimeline();
+
+    // Keep timeline up to date when storage changes
+    window.addEventListener('storage', (e) => {
+        if(e.key === 'currentGroup' || e.key === 'currentSection') updateHeaderLabel();
+        if(e.key === 'timelineSections' || e.key === 'researchTimeline' || e.key === 'researchTimeline_serialized' || e.key === 'researchTimeline_signal') {
+            // always refresh in-memory timeline entries
+            loadStudentTimeline();
+            // refresh modal if open
+            if(document.getElementById('timelineModal') && document.getElementById('timelineModal').classList.contains('show')) {
+                renderStudentTimeline();
+            }
+            // also refresh tasks
+            renderTasksFromTimeline();
+        }
+    });
+
+    // Poll for advisor signal (useful when storage events don't fire, e.g., some browsers or same-tab writes)
+    try{
+        let lastSignal = localStorage.getItem('researchTimeline_signal');
+        const signalInterval = setInterval(() => {
+            try{
+                const sig = localStorage.getItem('researchTimeline_signal');
+                if(sig && sig !== lastSignal){
+                    lastSignal = sig;
+                    loadStudentTimeline();
+                    // refresh modal if open
+                    if(document.getElementById('timelineModal') && document.getElementById('timelineModal').classList.contains('show')) renderStudentTimeline();
+                    renderTasksFromTimeline();
+                }
+            }catch(e){ /* ignore */ }
+        }, 1000);
+
+        window.addEventListener('unload', () => { try{ clearInterval(signalInterval); }catch(e){} });
+    }catch(e){ /* ignore polling setup errors */ }
+
+    console.log({
+      researchTimeline: localStorage.getItem('researchTimeline'),
+      researchTimeline_serialized: localStorage.getItem('researchTimeline_serialized'),
+      timelineSections: localStorage.getItem('timelineSections'),
+      researchTimeline_signal: localStorage.getItem('researchTimeline_signal'),
+      timelineKeys: Array.from({length: localStorage.length}, (_,i)=>localStorage.key(i))
+        .filter(k=>k && k.toLowerCase().includes('timeline'))
+        .reduce((acc,k)=>{acc[k]=localStorage.getItem(k);return acc},{})
+    });
+            // refresh modal if open
+            if(document.getElementById('timelineModal') && document.getElementById('timelineModal').classList.contains('show')) {
+                renderStudentTimeline();
+            }
+            // also refresh tasks
+            renderTasksFromTimeline();
+        }
+    );
+
+    // Expose timeline controls to the global scope so the sidebar's inline onclick can call them
+    window.openTimelineModal = openTimelineModal;
+    window.closeTimelineModal = closeTimelineModal;
+
+    // Ensure the sidebar timeline icon always opens the modal (fallback if inline onclick missing or scope issues)
+    try{
+        const tlCard = document.querySelector('.timeline-card');
+        console.debug('[Student] timeline-card element found:', !!tlCard);
+        console.debug('[Student] researchTimeline exists:', localStorage.getItem('researchTimeline') !== null);
+        console.debug('[Student] researchTimeline_serialized exists:', localStorage.getItem('researchTimeline_serialized') !== null);
+        console.debug('[Student] researchTimeline_signal exists:', localStorage.getItem('researchTimeline_signal') !== null);
+        console.debug('[Student] timelineSections exists:', localStorage.getItem('timelineSections') !== null);
+        if(tlCard){
+            // remove any inline onclick attribute to avoid double-calls and attach a reliable listener
+            tlCard.removeAttribute('onclick');
+            tlCard.addEventListener('click', (e) => {
+                e.preventDefault();
+                if(typeof window.openTimelineModal === 'function'){
+                    window.openTimelineModal();
+                } else {
+                    // Very defensive fallback: manually load and show
+                    loadStudentTimeline();
+                    renderStudentTimeline();
+                    const m = document.getElementById('timelineModal');
+                    if(m){ m.classList.add('show'); m.setAttribute('aria-hidden','false'); }
+                }
+            });
+            tlCard.tabIndex = 0;
+            tlCard.addEventListener('keydown', (ev)=>{ if(ev.key==='Enter' || ev.key===' ') tlCard.click(); });
+        }
+    }catch(e){ console.warn('Failed to attach timeline-card handler', e); }
+
+    // Render Tasks based on timeline: show items due tomorrow (student-facing task reminders)
+    function renderTasksFromTimeline(){
+        const tasksEl = document.getElementById('tasksList');
+        const emptyEl = document.getElementById('tasksEmpty');
+        if(!tasksEl) return;
+
+        // Prefer timelineSections with name/deadline, fallback to researchTimeline
+        const timeline = JSON.parse(localStorage.getItem('timelineSections') || '[]');
+        const source = (timeline && timeline.length) ? timeline : (JSON.parse(localStorage.getItem('researchTimeline') || '[]').map(t=>({ name: t.title, deadline: t.date })) || []);
+
+        const today = new Date(); today.setHours(0,0,0,0);
+        const items = source.map(t => ({ name: t.name, deadline: new Date((t.deadline||'') + 'T00:00:00') })).filter(i=>!isNaN(i.deadline)).map(i => ({ name: i.name, daysLeft: Math.floor((i.deadline - today)/(24*60*60*1000)), deadline: i.deadline }));
+
+        const dueTomorrow = items.filter(it => it.daysLeft === 1);
+
+        tasksEl.innerHTML = '';
+        if(!dueTomorrow.length){
+            if(emptyEl) emptyEl.style.display = 'block';
+            return;
+        }
+        if(emptyEl) emptyEl.style.display = 'none';
+
+        dueTomorrow.forEach(it=>{
+            const li = document.createElement('li');
+            li.innerHTML = `Submit <strong>${it.name}</strong> <span class="task-pending">Due tomorrow</span>`;
+            tasksEl.appendChild(li);
+        });
+    }
+
+    // Sidebar feature handlers (overview removed)
+    (function(){
+        const paper = document.querySelector('.feature-card.paper');
+        if (paper) {
+            paper.addEventListener('click', () => {
+                // Pass current section context if available
+                if (sectionName) localStorage.setItem('currentSection', JSON.stringify({ name: sectionName }));
+                window.location.href = 'research-paper-creator.html';
+            });
+            paper.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') paper.click(); });
+        }
+    })();
+
+    // Make logout reusable (also used by header button)
+    function logout(){
+        localStorage.removeItem('loggedInUser');
+        localStorage.removeItem('userRole');
+        localStorage.removeItem('currentGroup');
+        localStorage.removeItem('currentSection');
+        window.location.href = 'login.html';
+    }
+
+    const oldLogoutBtn = document.getElementById('logoutBtn');
+    if(oldLogoutBtn){ oldLogoutBtn.addEventListener('click', logout); }
+
+
+    // overview feature removed; no initial render or visibility hooks needed.
+;
+
+
+</script>
+
+</body>
+</html>

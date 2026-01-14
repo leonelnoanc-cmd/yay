@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Advisor Dashboard</title>
+
+<style>
+* { box-sizing: border-box; }
+body { margin:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f5f7fa; }
+
+/* HEADER */
+.header {
+    background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    color:white;
+    padding:20px 40px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+.logout-btn {
+    background: rgba(255,255,255,0.2);
+    color:white;
+    border:1px solid white;
+    padding:8px 16px;
+    border-radius:6px;
+    cursor:pointer;
+}
+.logout-btn:hover { background: rgba(255,255,255,0.3); }
+
+/* CONTAINER */
+.container {
+    max-width:1400px;
+    margin:0 auto;
+    padding:40px 20px;
+    display:grid;
+    grid-template-columns:100px 1fr;
+    gap:20px;
+}
+
+/* SIDEBAR */
+.sidebar {
+    background:white;
+    border-radius:12px;
+    padding:16px;
+    position:sticky;
+    top:100px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.1);
+}
+
+.add-section-card {
+    background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    cursor:pointer;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+.add-section-card:hover { transform:scale(1.1); }
+.add-section-card .plus-icon { font-size:40px; color:white; }
+
+.analytics-card {
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    background:#f0f3ff;
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    transition:0.3s;
+}
+.analytics-card span {
+    font-size:10px;
+    font-weight:600;
+    margin-top:2px;
+}
+.analytics-card:hover {
+    background:#e0e7ff;
+    transform:scale(1.1);
+}
+
+/* TIMELINE */
+.timeline-card {
+    width:70px;
+    height:70px;
+    border-radius:50%;
+    background:linear-gradient(135deg,#ffb86b 0%,#ff7eb6 100%);
+    cursor:pointer;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    font-size:22px;
+    transition:0.3s;
+}
+.timeline-card span {
+    font-size:10px;
+    font-weight:600;
+    margin-top:2px;
+}
+.timeline-card:hover { transform:scale(1.1); }
+
+/* MAIN CONTENT */
+.info-box {
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    margin-bottom:30px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+
+.sections-container {
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+    gap:25px;
+}
+
+.section-card {
+    background:#b0c4de;
+    padding:30px;
+    border-radius:15px;
+    min-height:180px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    cursor:pointer;
+    box-shadow:0 2px 12px rgba(0,0,0,0.1);
+    border: 2px solid transparent;
+    transition: all 0.3s;
+}
+.section-card:hover {
+    transform:translateY(-6px);
+    box-shadow:0 10px 25px rgba(0,0,0,0.15);
+    border-color:#667eea;
+}
+.section-card h3 {
+    margin:0 0 12px 0;
+    font-size:20px;
+    font-weight:700;
+}
+.section-card p {
+    margin:0 0 12px 0;
+    font-size:14px;
+    color:#333;
+}
+
+/* Buttons */
+.section-actions {
+    display:flex;
+    gap:10px;
+    justify-content:center;
+}
+.section-btn {
+    padding:8px 14px;
+    border:none;
+    border-radius:5px;
+    cursor:pointer;
+    font-size:13px;
+    font-weight:600;
+    transition:all 0.2s;
+}
+.share-btn { background:#27ae60; color:white; }
+.share-btn:hover { background:#229954; }
+.rename-btn { background:#667eea; color:white; }
+.rename-btn:hover { background:#5568d3; }
+.delete-btn { background:#e74c3c; color:white; }
+.delete-btn:hover { background:#c0392b; }
+
+.empty-state {
+    text-align:center;
+    padding:60px;
+    color:#999;
+}
+
+/* MODAL */
+.modal {
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.4);
+    justify-content:center;
+    align-items:center;
+}
+.modal.show { display:flex; }
+.modal-content {
+    background:white;
+    padding:30px;
+    border-radius:12px;
+    width:90%;
+    max-width:400px;
+}
+.modal-input {
+    width:100%;
+    padding:10px;
+    margin-bottom:20px;
+}
+.modal-buttons {
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+}
+.modal-btn {
+    padding:10px 20px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+    font-weight:600;
+    transition:all 0.3s;
+}
+.save-btn { background:#27ae60; color:white; }
+.save-btn:hover { background:#229954; }
+.cancel-btn { background:#ddd; color:#333; }
+.cancel-btn:hover { background:#ccc; }
+</style>
+</head>
+
+<body>
+
+<div class="header">
+    <h1>👨‍💼 Advisor Dashboard</h1>
+    <button class="logout-btn" onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar">
+        <div class="add-section-card" onclick="openAddSectionModal()" title="Add Section">
+            <div class="plus-icon">+</div>
+        </div>
+
+        <div class="analytics-card" onclick="openAnalytics()" title="Research Analytics">
+            📊<span>Analytics</span>
+        </div>
+
+        
+
+        <div class="analytics-card timeline-card" onclick="openTimelineModal()" title="Timeline">
+            🕒<span>Timeline</span>
+        </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-content">
+        <div class="info-box">
+            📌 Manage your sections below. Click a section to open its groups.
+        </div>
+
+        <h2>Your Sections</h2>
+        <div class="sections-container" id="sectionsContainer"></div>
+        <div class="empty-state" id="emptyState">No sections yet.</div>
+    </div>
+</div>
+
+<!-- ADD SECTION MODAL -->
+<div id="addSectionModal" class="modal">
+    <div class="modal-content">
+        <h2>Add Section</h2>
+        <input type="text" id="sectionNameInput" class="modal-input" placeholder="Section name">
+        <div class="modal-buttons">
+            <button class="modal-btn cancel-btn" onclick="closeAddSectionModal()">Cancel</button>
+            <button class="modal-btn save-btn" onclick="saveAddSection()">Add Section</button>
+        </div>
+    </div>
+</div>
+
+<!-- TIMELINE MODAL -->
+<div id="timelineModal" class="modal">
+    <div class="modal-content">
+        <h2>Research Timeline</h2>
+        <div id="timelineList" style="max-height:240px;overflow:auto;margin-bottom:10px;">
+            <!-- entries will appear here -->
+        </div>
+        <input type="text" id="timelineTitle" class="modal-input" placeholder="Event title">
+        <input type="date" id="timelineDate" class="modal-input" placeholder="Date">
+        <div class="modal-buttons">
+            <button class="modal-btn cancel-btn" onclick="closeTimelineModal()">Close</button>
+            <button class="modal-btn save-btn" onclick="saveTimelineEntry()">Add Event</button>
+        </div>
+    </div>
+</div>
+
+<script>
+let sections = [];
+
+window.onload = () => {
+    sections = JSON.parse(localStorage.getItem('advisorSections')) || [];
+    renderSections();
+    loadTimeline();
+};
+
+function renderSections(){
+    const container = document.getElementById('sectionsContainer');
+    const empty = document.getElementById('emptyState');
+    container.innerHTML = '';
+    empty.style.display = sections.length ? 'none' : 'block';
+
+    sections.forEach((s,i)=>{
+        const card = document.createElement('div');
+        card.className='section-card';
+        card.innerHTML = `
+            <h3>${s.name}</h3>
+            <p>Students: ${s.students || 0}</p>
+            <div class="section-actions">
+                <button class="section-btn share-btn">Share</button>
+                <button class="section-btn rename-btn">Rename</button>
+                <button class="section-btn delete-btn">Delete</button>
+            </div>
+        `;
+
+        // Buttons
+        card.querySelector('.share-btn').onclick = e => {
+            e.stopPropagation();
+            
+            // Get groups for this section
+            const allGroups = JSON.parse(localStorage.getItem('allSectionGroups')) || {};
+            const sectionGroups = allGroups[s.name] || [];
+
+            // Encode groups as JSON and URL encode it
+            const groupsParam = encodeURIComponent(JSON.stringify(sectionGroups));
+
+            // Create the shareable link (relative path to preserve origin/context)
+            const link = `Student_dashboard.html?section=${encodeURIComponent(s.name)}&groups=${groupsParam}`;
+
+            // Copy link to clipboard
+            navigator.clipboard.writeText(link).then(() => {
+                alert('Section link copied! Share it with your students.');
+            }).catch(() => {
+                alert('Failed to copy link. Please copy manually: ' + link);
+            });
+        };
+
+        card.querySelector('.rename-btn').onclick = e=>{
+            e.stopPropagation();
+            const newName = prompt('Rename section:', s.name);
+            if(newName){
+                sections[i].name = newName;
+                saveSections();
+                renderSections();
+            }
+        };
+        card.querySelector('.delete-btn').onclick = e=>{
+            e.stopPropagation();
+            if(confirm(`Delete "${s.name}"?`)){
+                sections.splice(i,1);
+                saveSections();
+                renderSections();
+            }
+        };
+
+        card.onclick = ()=>{
+            localStorage.setItem('currentSection', JSON.stringify(s));
+            window.location.href='section-groups.html';
+        };
+
+        container.appendChild(card);
+    });
+}
+
+function openAddSectionModal(){
+    document.getElementById('addSectionModal').classList.add('show');
+    document.getElementById('sectionNameInput').value='';
+    document.getElementById('sectionNameInput').focus();
+}
+
+function closeAddSectionModal(){
+    document.getElementById('addSectionModal').classList.remove('show');
+}
+
+function saveAddSection(){
+    const name = document.getElementById('sectionNameInput').value.trim();
+    if(!name) return alert('Section name cannot be empty');
+
+    sections.push({ name: name, students: 0 });
+    saveSections();
+    renderSections();
+    closeAddSectionModal();
+}
+
+function saveSections(){
+    localStorage.setItem('advisorSections', JSON.stringify(sections));
+}
+
+// TIMELINE: manage research timeline events
+let timelineEntries = [];
+
+function loadTimeline(){
+    timelineEntries = JSON.parse(localStorage.getItem('researchTimeline')) || [];
+}
+
+function openTimelineModal(){
+    document.getElementById('timelineModal').classList.add('show');
+    renderTimeline();
+}
+
+function closeTimelineModal(){
+    document.getElementById('timelineModal').classList.remove('show');
+}
+
+function saveTimelineEntry(){
+    const title = document.getElementById('timelineTitle').value.trim();
+    const date = document.getElementById('timelineDate').value;
+    if(!title || !date) return alert('Please provide a title and date.');
+
+    // Save to advisor timeline (title + date only)
+    timelineEntries.push({ title, date });
+    // Primary timeline key
+    localStorage.setItem('researchTimeline', JSON.stringify(timelineEntries));
+    // Also keep a serialized alternate key in case student pages look for a different name
+    localStorage.setItem('researchTimeline_serialized', JSON.stringify(timelineEntries));
+    // Write a timestamp signal to force storage events across tabs/pages
+    try{ localStorage.setItem('researchTimeline_signal', Date.now().toString()); }catch(e){ /* ignore */ }
+
+    // Also add to group's timelineSections so the date appears in group-dashboard
+    try {
+        const sections = JSON.parse(localStorage.getItem('timelineSections')) || [];
+        const exists = sections.some(s => s.name === title && s.deadline === date);
+        if(!exists){
+            sections.push({ name: title, deadline: date });
+            localStorage.setItem('timelineSections', JSON.stringify(sections));
+        }
+    } catch(e){
+        console.error('Failed to sync timeline to group dashboard', e);
+    }
+
+    document.getElementById('timelineTitle').value='';
+    document.getElementById('timelineDate').value='';
+    renderTimeline();
+}
+
+function renderTimeline(){
+    const list = document.getElementById('timelineList');
+    list.innerHTML = '';
+    if(!timelineEntries.length){
+        list.innerHTML = '<div style="color:#777;padding:10px;">No timeline events yet.</div>';
+        return;
+    }
+    timelineEntries.forEach((t,i)=>{
+        const div = document.createElement('div');
+        div.className = 'timeline-entry';
+        div.innerHTML = `<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid #eee;"><div><strong>${t.title}</strong><div style="color:#666;font-size:12px">${t.date}</div></div><div><button class="modal-btn delete-btn" onclick="deleteTimelineEntry(${i})">Delete</button></div></div>`;
+        list.appendChild(div);
+    });
+}
+
+function deleteTimelineEntry(index){
+    if(!confirm('Delete this timeline event?')) return;
+    const removed = timelineEntries.splice(index,1)[0];
+    localStorage.setItem('researchTimeline', JSON.stringify(timelineEntries));
+
+    // Remove any matching section entry in timelineSections (so group-dashboard is updated)
+    try{
+        let sections = JSON.parse(localStorage.getItem('timelineSections')) || [];
+        if(removed){
+            sections = sections.filter(s => !(s.name === removed.title && s.deadline === removed.date));
+            localStorage.setItem('timelineSections', JSON.stringify(sections));
+            // update serialized copy as well and emit signal
+            try{ localStorage.setItem('researchTimeline_serialized', JSON.stringify(timelineEntries)); localStorage.setItem('researchTimeline_signal', Date.now().toString()); }catch(e){}
+        }
+    }catch(e){
+        console.error('Failed to sync deletion to group dashboard', e);
+    }
+
+    renderTimeline();
+}
+
+function openAnalytics(){ window.location.href='research-analytics.html'; }
+function openSubmissionTracker(){ window.location.href='submission-tracker.html'; }
+function logout(){ localStorage.clear(); window.location.href='login.html'; }
+</script>
+
+</body>
+</html>

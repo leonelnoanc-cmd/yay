@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Student Role</title>
+<style>
+* { box-sizing: border-box; }
+body { margin:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); display:flex; align-items:center; justify-content:center; min-height:100vh; padding:20px; }
+.wrap { width:100%; max-width:860px; background:white; border-radius:12px; padding:28px; box-shadow:0 10px 40px rgba(0,0,0,0.12); }
+.h { color:#333; margin:0 0 8px 0; font-size:22px; font-weight:700 }
+.subtitle { color:#666; margin-bottom:18px }
+.roles { display:flex; gap:20px; justify-content:center; flex-wrap:wrap }
+.card { flex:1; min-width:220px; border-radius:12px; padding:18px; background:#f7f7fb; cursor:pointer; transition:all 0.18s; box-shadow:0 6px 20px rgba(0,0,0,0.06) }
+.card:hover{ transform:translateY(-6px) }
+.card h3{ margin:0 0 6px 0 }
+.card p{ color:#555; margin:0; font-size:14px }
+.footer{ margin-top:18px; text-align:center }
+.back{ color:#667eea; text-decoration:none }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div>
+            <div class="h">Student Role</div>
+            <div class="subtitle">Choose whether you're a Member or a Leader</div>
+        </div>
+        <div>
+            <a class="back" href="role.html">&larr; Back</a>
+        </div>
+    </div>
+
+    <div class="roles">
+        <div class="card" id="memberCard" role="button" tabindex="0">
+            <h3>Member</h3>
+            <p>Access course materials, submit parts, and view progress as a team member.</p>
+        </div>
+        <div class="card" id="leaderCard" role="button" tabindex="0">
+            <h3>Leader</h3>
+            <p>Lead your group's submissions, assign tasks, and coordinate with your advisor.</p>
+        </div>
+    </div>
+
+    <div class="footer"><small style="color:#666">Selecting a role will be saved for this session.</small></div>
+</div>
+
+<script>
+function chooseStudentType(type){
+    try{ localStorage.setItem('userRole','student'); localStorage.setItem('studentType', type); }catch(e){}
+    const card = document.getElementById(type+'Card'); if(card) card.style.transform='scale(0.96)';
+    setTimeout(()=>{
+        if(type === 'leader') window.location.href = 'Student-leader.html';
+        else window.location.href = 'Student_dashboard.html';
+    }, 150);
+}
+
+document.getElementById('memberCard').addEventListener('click', ()=> chooseStudentType('member'));
+document.getElementById('leaderCard').addEventListener('click', ()=> chooseStudentType('leader'));
+
+// keyboard support
+['memberCard','leaderCard'].forEach(id=>{
+    const el = document.getElementById(id);
+    el && el.addEventListener('keypress', function(e){ if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); chooseStudentType(id.replace('Card','')); } });
+});
+</script>
+</body>
+</html>
