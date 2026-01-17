@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Select Chapters</title>
+<style>
+body{font-family:'Segoe UI',Tahoma, Geneva, Verdana, sans-serif;background:#f5f7fa;margin:0;padding:0}
+.top-bar{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:16px 24px;display:flex;justify-content:space-between;align-items:center}
+.container{max-width:900px;margin:28px auto;padding:20px}
+.chapter-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.card{background:#fff;padding:14px;border-radius:10px;box-shadow:0 6px 18px rgba(0,0,0,0.06);display:flex;align-items:center;gap:12px}
+.card input{transform:scale(1.15)}
+.fixed-action-btn{position:fixed;right:20px;bottom:20px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:12px 18px;border:none;border-radius:8px;cursor:pointer;font-weight:700}
+</style>
+</head>
+<body>
+<div class="top-bar">
+    <h1>Choose Chapters</h1>
+    <div></div>
+</div>
+<div class="container">
+    <p>Select the chapter(s) you have created for this paper:</p>
+    <div class="chapter-list" id="chapterList"></div>
+</div>
+<button class="fixed-action-btn" id="nextBtn">Next →</button>
+<script>
+(function(){
+    const chapters = [
+        { id: 1, name: 'Chapter 1', subtitle: 'Background of the Study; Statement of the Problem; Conceptual Framework; Theoretical Framework; Significance of the Study; Scope and Delimitation of the Study; Definition of Terms' },
+        { id: 2, name: 'Chapter 2', subtitle: 'Review of Related Literature; Review of Related Studies' },
+        { id: 3, name: 'Chapter 3', subtitle: 'Research Design; Locale of the Study; Research Instrument; Data Gathering Procedures; Method of Data Analysis' },
+        { id: 4, name: 'Chapter 4', subtitle: 'Presentation of Key Findings' },
+        { id: 5, name: 'Chapter 5', subtitle: 'Summary; Implication of Findings; Conclusions; Recommendations' }
+    ];
+
+    const list = document.getElementById('chapterList');
+    chapters.forEach(ch=>{
+        const d = document.createElement('div');
+        d.className = 'card';
+        d.innerHTML = `<label style="flex:1;display:flex;gap:12px;align-items:center"><input type="checkbox" value="${ch.id}"><div style="flex:1"><div style="font-weight:700">${ch.name}</div><div style="font-size:12px;color:#666;margin-top:6px">${ch.subtitle}</div></div></label>`;
+        list.appendChild(d);
+    });
+
+    document.getElementById('nextBtn').addEventListener('click', ()=>{
+        const selected = Array.from(document.querySelectorAll('#chapterList input:checked')).map(i=>i.value);
+        if(!selected.length){ alert('Select at least one chapter to continue'); return; }
+        // pass selections via query param
+        let q = '?chapters=' + encodeURIComponent(JSON.stringify(selected));
+        const params = new URLSearchParams(location.search);
+        if(params.has('paperIndex')) q += '&paperIndex=' + encodeURIComponent(params.get('paperIndex'));
+        window.location.href = 'submission.html' + q;
+    });
+
+    // propagate paperIndex from query if present and show paper title if available
+    const params = new URLSearchParams(location.search);
+    if(params.has('paperIndex')){
+        const idx = Number(params.get('paperIndex'));
+        try{
+            const papers = JSON.parse(localStorage.getItem('researchPapers') || '[]');
+            if(papers && papers[idx] && papers[idx].title){
+                const info = document.createElement('div');
+                info.style.marginTop = '12px';
+                info.style.color = '#333';
+                info.innerHTML = `<strong>Related Paper:</strong> ${papers[idx].title}`;
+                document.querySelector('.container').insertBefore(info, document.getElementById('chapterList'));
+            }
+        }catch(e){ /* ignore */ }
+    }
+})();
+</script>
+</body>
+</html>

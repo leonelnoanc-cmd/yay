@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Login</title>
+	<style>
+		* { box-sizing: border-box; }
+		
+		body {
+			margin: 0;
+			font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			min-height: 100vh;
+			padding: 20px;
+		}
+
+		.container {
+			background: white;
+			padding: 40px;
+			width: 100%;
+			max-width: 400px;
+			border-radius: 12px;
+			box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+		}
+
+		h2 {
+			text-align: center;
+			margin: 0 0 30px 0;
+			color: #333;
+			font-size: 24px;
+		}
+
+		.form-group {
+			margin-bottom: 18px;
+		}
+
+		label {
+			display: block;
+			font-size: 13px;
+			font-weight: 600;
+			color: #555;
+			margin-bottom: 6px;
+		}
+
+		input {
+			width: 100%;
+			padding: 12px 14px;
+			border: 2px solid #ddd;
+			border-radius: 8px;
+			font-size: 14px;
+			transition: border-color 0.3s, box-shadow 0.3s;
+		}
+
+		input:focus {
+			outline: none;
+			border-color: #667eea;
+			box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+		}
+
+		input.error {
+			border-color: #e74c3c;
+		}
+
+		.error-message {
+			color: #e74c3c;
+			font-size: 12px;
+			margin-top: 5px;
+			display: none;
+		}
+
+		.error-message.show {
+			display: block;
+		}
+
+		button {
+			width: 100%;
+			padding: 12px;
+			background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+			border: none;
+			border-radius: 8px;
+			color: white;
+			font-size: 16px;
+			font-weight: 600;
+			cursor: pointer;
+			margin-top: 20px;
+			transition: transform 0.2s, box-shadow 0.2s;
+		}
+
+		button:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+		}
+
+		button:active {
+			transform: translateY(0);
+		}
+
+		.signup-link {
+			text-align: center;
+			margin-top: 18px;
+			font-size: 14px;
+			color: #666;
+		}
+
+		.signup-link a {
+			color: #667eea;
+			text-decoration: none;
+			font-weight: 600;
+			transition: color 0.2s;
+		}
+
+		.signup-link a:hover {
+			color: #764ba2;
+		}
+
+		.forgot-password {
+			text-align: right;
+			margin-top: 10px;
+		}
+
+		.forgot-password a {
+			color: #667eea;
+			text-decoration: none;
+			font-size: 12px;
+			transition: color 0.2s;
+		}
+
+		.forgot-password a:hover {
+			color: #764ba2;
+		}
+	</style>
+</head>
+<body>
+
+	<div class="container" id="login">
+		<h2>Log In</h2>
+
+		<form id="loginForm" onsubmit="login(event)">
+			<div class="form-group">
+				<label for="loginUser">Username or Email</label>
+				<input type="text" id="loginUser" placeholder="Enter your username or email" required>
+				<div class="error-message" id="userError"></div>
+			</div>
+
+			<div class="form-group">
+				<label for="loginPassword">Password</label>
+				<input type="password" id="loginPassword" placeholder="Enter your password" required>
+				<div class="error-message" id="passwordError"></div>
+				<div class="forgot-password">
+					<a href="#">Forgot password?</a>
+				</div>
+			</div>
+
+			<button type="submit">Login</button>
+		</form>
+
+		<div class="signup-link">
+			Don't have an account? <a href="signup.html">Sign up</a>
+		</div>
+	</div>
+
+<script>
+function clearErrors() {
+	document.querySelectorAll('.error-message').forEach(el => el.classList.remove('show'));
+	document.querySelectorAll('input').forEach(el => el.classList.remove('error'));
+}
+
+function showError(fieldId, message) {
+	const errorEl = document.getElementById(fieldId + 'Error');
+	errorEl.textContent = message;
+	errorEl.classList.add('show');
+	document.getElementById(fieldId).classList.add('error');
+}
+
+function login(event) {
+	event.preventDefault();
+	clearErrors();
+
+	let user = document.getElementById('loginUser').value.trim();
+	let pass = document.getElementById('loginPassword').value;
+
+	let isValid = true;
+
+	if (!user) {
+		showError('user', 'Username or email is required');
+		isValid = false;
+	}
+
+	if (!pass) {
+		showError('password', 'Password is required');
+		isValid = false;
+	}
+
+	if (!isValid) return;
+
+	// Validate against saved user account
+	const savedUser = localStorage.getItem('userSignup');
+	
+	if (!savedUser) {
+		showError('user', 'No account found. Please sign up first.');
+		return;
+	}
+
+	try {
+		const accountData = JSON.parse(savedUser);
+		
+		// Check if username/email and password match
+		if ((accountData.username === user || accountData.email === user) && accountData.password === pass) {
+			// Clear old user data (section enrollment, previous session data)
+			const loggedInUser = localStorage.getItem('loggedInUser');
+			if (loggedInUser && loggedInUser !== user) {
+				// Different user logging in, clear their section enrollment
+				localStorage.removeItem('studentEnrolledSection');
+			}
+			
+			// Login successful
+			localStorage.setItem('loggedInUser', JSON.stringify({
+				username: accountData.username,
+				email: accountData.email
+			}));
+			localStorage.setItem('userRole', accountData.role || 'student');
+			
+			// Redirect to role selection if role not set
+			const userRole = accountData.role || localStorage.getItem('userRole') || 'student';
+			
+			if (userRole === 'adviser') {
+				window.location.href = 'Adviser_dashboard.html';
+			} else {
+				// Student goes to role selection first if needed, or directly to student dashboard
+				window.location.href = 'Student_dashboard.html';
+			}
+		} else {
+			showError('user', 'Invalid username/email or password');
+		}
+	} catch(e) {
+		showError('user', 'Login failed. Please try again.');
+		console.error('Login error:', e);
+	}
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Submission Details</title>
+<style>
+* { box-sizing: border-box; }
+body { margin:0; font-family:'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#f5f7fa; }
+
+/* HEADER */
+.header {
+    background: linear-gradient(135deg,#667eea 0%,#764ba2 100%);
+    color:white;
+    padding:20px 40px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+.header h1 { margin:0; font-size:24px; }
+.back-btn, .logout-btn {
+    background: rgba(255,255,255,0.2);
+    color:white;
+    border:1px solid white;
+    padding:8px 16px;
+    border-radius:6px;
+    cursor:pointer;
+    margin-left:10px;
+    transition:all 0.3s;
+}
+.back-btn:hover, .logout-btn:hover { background: rgba(255,255,255,0.3); }
+
+/* CONTAINER */
+.container { max-width:1200px; margin:0 auto; padding:40px 20px; }
+
+/* INFO BOX */
+.info-box {
+    background:white;
+    padding:20px 30px;
+    border-radius:12px;
+    margin-bottom:30px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+    font-size:14px;
+}
+
+/* CHAPTER CARDS */
+.chapter-card {
+    background:white;
+    border-radius:12px;
+    padding:20px;
+    margin-bottom:20px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.08);
+}
+.chapter-card h2 { margin:0 0 12px 0; font-size:18px; color:#333; }
+.part-list { list-style:none; padding:0; margin:0; }
+.part-list li { padding:8px 12px; border-radius:6px; margin-bottom:6px; display:flex; justify-content:space-between; align-items:center; background:#f0f3ff; transition:all 0.2s; cursor:pointer; }
+.part-list li.submitted { background:#27ae60; color:white; }
+.part-list li:hover { transform:translateY(-2px); }
+
+.status-badge {
+    font-size:12px;
+    padding:2px 6px;
+    border-radius:4px;
+    font-weight:600;
+}
+
+.status-submitted { background:#27ae60; color:white; }
+.status-pending { background:#e74c3c; color:white; }
+
+.empty-state { text-align:center; padding:60px; color:#999; }
+
+/* RESPONSIVE */
+@media(max-width:768px){
+    .header { flex-direction:column; gap:12px; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <h1 id="groupTitle">Group Submissions</h1>
+    <div>
+        <button class="back-btn" onclick="goBack()">← Back</button>
+        <button class="logout-btn" onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="info-box">
+        📌 View submission status for each part of the research. Click on a part to mark as submitted.
+    </div>
+
+    <div id="chaptersContainer"></div>
+    <div class="empty-state" id="emptyState">No submissions found.</div>
+</div>
+
+<script>
+// List of all research parts by chapter
+const researchParts = [
+    { chapter:"Chapter 1", parts:[
+        "Background of the Study",
+        "Statement of the Problem",
+        "Conceptual Framework",
+        "Theoretical Framework",
+        "Significance of the Study",
+        "Scope and Delimitation of the Study",
+        "Definition of Terms"
+    ]},
+    { chapter:"Chapter 2", parts:[
+        "Review of Related Literature",
+        "Review of Related Studies"
+    ]},
+    { chapter:"Chapter 3", parts:[
+        "Research Design",
+        "Locale of the Study",
+        "Research Instrument",
+        "Data Gathering Procedures",
+        "Method of Data Analysis"
+    ]},
+    { chapter:"Chapter 4", parts:[
+        "Presentation of Key Findings"
+    ]},
+    { chapter:"Chapter 5", parts:[
+        "Summary",
+        "Implication of Findings",
+        "Conclusions",
+        "Recommendations"
+    ]}
+];
+
+let currentGroup = null;
+
+window.onload = ()=>{
+    loadCurrentGroup();
+    renderChapters();
+};
+
+function loadCurrentGroup(){
+    const saved = localStorage.getItem('currentGroup');
+    if(saved){
+        currentGroup = JSON.parse(saved);
+        document.getElementById('groupTitle').textContent = `${currentGroup.name} - Submissions`;
+        // Initialize submission status if not already present
+        if(!currentGroup.submissions){
+            currentGroup.submissions = {};
+            researchParts.forEach(ch=>{
+                ch.parts.forEach(p=>{
+                    currentGroup.submissions[p] = false;
+                });
+            });
+        }
+    }
+}
+
+function renderChapters(){
+    const container = document.getElementById('chaptersContainer');
+    const empty = document.getElementById('emptyState');
+    container.innerHTML='';
+    if(!currentGroup || !currentGroup.submissions){ empty.style.display='block'; return; }
+    empty.style.display='none';
+
+    researchParts.forEach(ch=>{
+        const card = document.createElement('div');
+        card.className='chapter-card';
+        const h2 = document.createElement('h2');
+        h2.textContent = ch.chapter;
+        card.appendChild(h2);
+
+        const ul = document.createElement('ul');
+        ul.className='part-list';
+        ch.parts.forEach(part=>{
+            const li = document.createElement('li');
+            li.textContent = part;
+            li.className = currentGroup.submissions[part] ? 'submitted' : '';
+            
+            const status = document.createElement('span');
+            status.className = 'status-badge ' + (currentGroup.submissions[part] ? 'status-submitted':'status-pending');
+            status.textContent = currentGroup.submissions[part] ? 'Submitted':'Pending';
+            li.appendChild(status);
+
+            li.onclick = ()=>{
+                currentGroup.submissions[part] = !currentGroup.submissions[part];
+                saveGroup();
+                renderChapters();
+            }
+
+            ul.appendChild(li);
+        });
+
+        card.appendChild(ul);
+        container.appendChild(card);
+    });
+}
+
+function saveGroup(){
+    // Update in localStorage
+    const allGroups = JSON.parse(localStorage.getItem('allSectionGroups')) || {};
+    const sectionName = currentGroup.sectionName || JSON.parse(localStorage.getItem('currentSection')).name;
+    const groups = allGroups[sectionName] || [];
+    const idx = groups.findIndex(g=>g.id===currentGroup.id);
+    if(idx>=0) groups[idx] = currentGroup;
+    allGroups[sectionName] = groups;
+    localStorage.setItem('allSectionGroups', JSON.stringify(allGroups));
+}
+
+function goBack(){ window.location.href='submission-groups.html'; }
+function logout(){ localStorage.clear(); window.location.href='login.html'; }
+</script>
+
+</body>
+</html>

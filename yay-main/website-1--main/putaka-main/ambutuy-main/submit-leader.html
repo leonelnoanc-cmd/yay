@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Submit Paper (Leader) - Basta Bago Na Siya</title>
+<style>
+body{font-family:'Segoe UI',Tahoma,Arial,sans-serif;background:#f5f7fa;margin:0}
+.header{background:linear-gradient(135deg,#667eea,#764ba2);color:#fff;padding:18px 24px;display:flex;justify-content:space-between;align-items:center}
+.container{max-width:900px;margin:28px auto;padding:20px}
+.card{background:#fff;padding:20px;border-radius:10px;box-shadow:0 6px 20px rgba(0,0,0,0.06)}
+.field{margin-bottom:12px}
+label{display:block;margin-bottom:6px;font-weight:700}
+input[type='text'],input[type='email'],input[type='file'],select,textarea{width:100%;padding:10px;border:1px solid #ddd;border-radius:6px}
+.actions{display:flex;gap:10px;justify-content:flex-end;margin-top:12px}
+.btn{padding:10px 16px;border:none;border-radius:8px;cursor:pointer;font-weight:700}
+.primary{background:#667eea;color:#fff}
+.secondary{background:#ddd;color:#333}
+.success{background:#d4edda;color:#155724;padding:10px;border-radius:6px;margin-bottom:12px;display:none}
+</style>
+</head>
+<body>
+<div class="header">
+    <div><strong>Submit Paper (Leader)</strong></div>
+    <div><a href="Student-leader.html" style="color:white;text-decoration:none;font-weight:700">← Dashboard</a></div>
+</div>
+<div class="container">
+    <div class="card">
+        <div id="success" class="success">Your paper was submitted successfully.</div>
+        <div class="field">
+            <label for="author">Author Name</label>
+            <input id="author" type="text" placeholder="Author name" />
+        </div>
+        <div class="field">
+            <label for="file">Upload PDF</label>
+            <input id="file" type="file" accept="application/pdf" />
+        </div>
+        
+        <div class="actions">
+            <button class="btn secondary" onclick="cancel()">Cancel</button>
+            <button id="nextBtn" class="btn primary" onclick="submitPaper()">Next</button>
+        </div>
+    </div>
+</div>
+<script>
+function cancel(){ window.location.href = 'Student-leader.html'; }
+function showError(msg){ alert(msg); }
+function submitPaper(){
+    const author = (document.getElementById('author').value||'').trim();
+    const fileEl = document.getElementById('file');
+    const file = (fileEl && fileEl.files && fileEl.files[0]) ? fileEl.files[0] : null;
+    const errors = [];
+    if(!author) errors.push('Author is required');
+    if(!file) errors.push('Please upload a PDF file');
+    else if(!file.name.toLowerCase().endsWith('.pdf')) errors.push('Uploaded file must be a PDF');
+    if(errors.length){ showError(errors.join('\n')); return; }
+    // Save submission metadata to localStorage (file not uploaded in this demo)
+    const subs = JSON.parse(localStorage.getItem('submissions')||'[]');
+    subs.push({ author, fileName: file.name, submittedAt: new Date().toISOString() });
+    localStorage.setItem('submissions', JSON.stringify(subs));
+    // store current paper index for next flow (chapters)
+    const index = subs.length - 1;
+    localStorage.setItem('currentPaperIndex', String(index));
+    // show success and navigate to chapters flow
+    const successEl = document.getElementById('success');
+    successEl.textContent = 'Saved. Redirecting to chapters...';
+    successEl.style.display = 'block';
+    setTimeout(()=>{ window.location.href = 'chapters-leader.html?paperIndex=' + index; }, 800);
+}
+</script>
+</body>
+</html>

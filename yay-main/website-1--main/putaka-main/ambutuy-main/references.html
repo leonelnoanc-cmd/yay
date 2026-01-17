@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>References - APA Format</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Times New Roman", serif;
+            background: #f4f6f8;
+            padding: 40px 20px;
+        }
+
+        .page-container {
+            max-width: 210mm;
+            margin: 0 auto;
+            background: white;
+            padding: 1in;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-height: 297mm;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 24pt;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        .controls {
+            background: #007bff;
+            color: white;
+            padding: 15px 20px;
+            border-radius: 6px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .controls h2 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .control-buttons button {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-add {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-add:hover {
+            background: #218838;
+        }
+
+        .btn-import {
+            background: #17a2b8;
+            color: white;
+        }
+
+        .btn-import:hover {
+            background: #138496;
+        }
+
+        .btn-export {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .btn-export:hover {
+            background: #e0a800;
+        }
+
+        .btn-print {
+            background: white;
+            color: #007bff;
+        }
+
+        .btn-print:hover {
+            background: #f0f0f0;
+        }
+
+        .btn-clear {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-clear:hover {
+            background: #c82333;
+        }
+
+        .btn-nav {
+            background: #007bff;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 13px;
+            text-decoration: none;
+        }
+
+        .btn-nav:hover { background: #0056b3; }
+
+        .references-title {
+            font-size: 12pt;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 24pt;
+        }
+
+        .references-list {
+            font-size: 12pt;
+            line-height: 2;
+        }
+
+        .reference-item {
+            margin-bottom: 0;
+            padding-left: 0.5in;
+            text-indent: -0.5in;
+            position: relative;
+        }
+
+        .reference-item:hover .delete-btn {
+            opacity: 1;
+        }
+
+        .delete-btn {
+            position: absolute;
+            right: 0;
+            top: 0;
+            background: #dc3545;
+            color: white;
+            border: none;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+            opacity: 0;
+            transition: opacity 0.2s;
+            display: none;
+        }
+
+        .reference-item:hover .delete-btn {
+            display: block;
+            opacity: 1;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+            color: #999;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+
+        .empty-state button {
+            margin-top: 20px;
+            padding: 12px 24px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .empty-state button:hover {
+            background: #0056b3;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 600px;
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .modal-content label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .modal-content input,
+        .modal-content textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+            font-family: Arial, sans-serif;
+        }
+
+        .modal-content textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .modal-buttons button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-cancel {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-cancel:hover {
+            background: #5a6268;
+        }
+
+        .btn-save {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-save:hover {
+            background: #0056b3;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .page-container {
+                box-shadow: none;
+                padding: 1in;
+                margin: 0;
+            }
+
+            .controls,
+            .delete-btn {
+                display: none !important;
+            }
+
+            .references-list {
+                page-break-inside: avoid;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .control-buttons {
+                width: 100%;
+            }
+
+            .control-buttons button {
+                flex: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="page-container">
+    <div class="controls">
+        <h2>📚 Reference Manager</h2>
+        <div class="control-buttons">
+            <button class="btn-add" onclick="openAddModal()">➕ Add Reference</button>
+            <button class="btn-import" onclick="importReferences()">📥 Import</button>
+            <button class="btn-export" onclick="exportReferences()">💾 Export</button>
+            <button class="btn-print" onclick="printReferences()">🖨️ Print</button>
+            <button class="btn-clear" onclick="clearAllReferences()">🗑️ Clear All</button>
+            <button class="btn-nav" onclick="location.href='researchpaper_creation.html'">Paper Creator</button>
+        </div>
+    </div>
+
+    <div id="referencesContainer">
+        <!-- References will be displayed here -->
+    </div>
+</div>
+
+<!-- Add Reference Modal -->
+<div class="modal" id="addModal">
+    <div class="modal-content">
+        <h2>Add New Reference</h2>
+        
+        <label for="refType">Reference Type:</label>
+        <select id="refType" onchange="updateReferenceForm()">
+            <option value="journal">Journal Article</option>
+            <option value="book">Book</option>
+            <option value="website">Website</option>
+            <option value="manual">Manual Entry (Full Citation)</option>
+        </select>
+
+        <div id="formFields">
+            <!-- Dynamic form fields will appear here -->
+        </div>
+
+        <div class="modal-buttons">
+            <button class="btn-cancel" onclick="closeAddModal()">Cancel</button>
+            <button class="btn-save" onclick="saveReference()">Save Reference</button>
+        </div>
+    </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal" id="importModal">
+    <div class="modal-content">
+        <h2>Import References</h2>
+        <p style="margin-bottom: 15px; color: #666;">Paste your references below (one per line or separated by double line breaks):</p>
+        
+        <textarea id="importText" rows="10" placeholder="Paste references here..."></textarea>
+
+        <div class="modal-buttons">
+            <button class="btn-cancel" onclick="closeImportModal()">Cancel</button>
+            <button class="btn-save" onclick="processImport()">Import</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let references = [];
+
+    // Load references from localStorage on page load
+    function loadReferences() {
+        const saved = localStorage.getItem('references');
+        if (saved) {
+            references = JSON.parse(saved);
+        }
+        displayReferences();
+    }
+
+    // Save references to localStorage
+    function saveToStorage() {
+        localStorage.setItem('references', JSON.stringify(references));
+    }
+
+    // Display references in APA format
+    function displayReferences() {
+        const container = document.getElementById('referencesContainer');
+        
+        if (references.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">📚</div>
+                    <p><strong>No references yet</strong></p>
+                    <p style="font-size: 14px; color: #666;">Add your first reference to get started</p>
+                    <button onclick="openAddModal()">➕ Add Reference</button>
+                </div>
+            `;
+            return;
+        }
+
+        // Sort references alphabetically
+        const sortedRefs = [...references].sort((a, b) => 
+            a.citation.localeCompare(b.citation)
+        );
+
+        container.innerHTML = `
+            <div class="references-title">References</div>
+            <div class="references-list">
+                ${sortedRefs.map((ref, index) => `
+                    <p class="reference-item">
+                        ${ref.citation}
+                        <button class="delete-btn" onclick="deleteReference(${index})" title="Delete">×</button>
+                    </p>
+                `).join('')}
+            </div>
+        `;
+    }
+
+    // Update form based on reference type
+    function updateReferenceForm() {
+        const type = document.getElementById('refType').value;
+        const formFields = document.getElementById('formFields');
+
+        if (type === 'manual') {
+            formFields.innerHTML = `
+                <label for="manualCitation">Full APA Citation:</label>
+                <textarea id="manualCitation" rows="4" placeholder="Paste or type the complete APA citation..."></textarea>
+            `;
+        } else if (type === 'journal') {
+            formFields.innerHTML = `
+                <label for="authors">Authors (e.g., Smith, J., & Doe, A.):</label>
+                <input type="text" id="authors" placeholder="Last, F. M., & Last2, F. M.">
+
+                <label for="year">Year:</label>
+                <input type="text" id="year" placeholder="2024">
+
+                <label for="title">Article Title:</label>
+                <input type="text" id="title" placeholder="Title of the article">
+
+                <label for="journal">Journal Name:</label>
+                <input type="text" id="journal" placeholder="Journal of Research">
+
+                <label for="volume">Volume:</label>
+                <input type="text" id="volume" placeholder="15">
+
+                <label for="issue">Issue (optional):</label>
+                <input type="text" id="issue" placeholder="3">
+
+                <label for="pages">Pages:</label>
+                <input type="text" id="pages" placeholder="245-267">
+
+                <label for="doi">DOI (optional):</label>
+                <input type="text" id="doi" placeholder="https://doi.org/10.xxxx/xxxxx">
+            `;
+        } else if (type === 'book') {
+            formFields.innerHTML = `
+                <label for="authors">Authors (e.g., Smith, J.):</label>
+                <input type="text" id="authors" placeholder="Last, F. M.">
+
+                <label for="year">Year:</label>
+                <input type="text" id="year" placeholder="2024">
+
+                <label for="title">Book Title:</label>
+                <input type="text" id="title" placeholder="Title of the book">
+
+                <label for="publisher">Publisher:</label>
+                <input type="text" id="publisher" placeholder="Publisher Name">
+
+                <label for="doi">DOI or URL (optional):</label>
+                <input type="text" id="doi" placeholder="https://doi.org/...">
+            `;
+        } else if (type === 'website') {
+            formFields.innerHTML = `
+                <label for="authors">Author/Organization:</label>
+                <input type="text" id="authors" placeholder="Organization Name or Author">
+
+                <label for="year">Year:</label>
+                <input type="text" id="year" placeholder="2024">
+
+                <label for="title">Page Title:</label>
+                <input type="text" id="title" placeholder="Title of the webpage">
+
+                <label for="website">Website Name:</label>
+                <input type="text" id="website" placeholder="Website Name">
+
+                <label for="url">URL:</label>
+                <input type="text" id="url" placeholder="https://...">
+            `;
+        }
+    }
+
+    // Open add modal
+    function openAddModal() {
+        document.getElementById('addModal').classList.add('active');
+        updateReferenceForm();
+    }
+
+    // Close add modal
+    function closeAddModal() {
+        document.getElementById('addModal').classList.remove('active');
+    }
+
+    // Save reference
+    function saveReference() {
+        const type = document.getElementById('refType').value;
+        let citation = '';
+
+        if (type === 'manual') {
+            citation = document.getElementById('manualCitation').value.trim();
+            if (!citation) {
+                alert('Please enter a citation');
+                return;
+            }
+        } else if (type === 'journal') {
+            const authors = document.getElementById('authors').value.trim();
+            const year = document.getElementById('year').value.trim();
+            const title = document.getElementById('title').value.trim();
+            const journal = document.getElementById('journal').value.trim();
+            const volume = document.getElementById('volume').value.trim();
+            const issue = document.getElementById('issue').value.trim();
+            const pages = document.getElementById('pages').value.trim();
+            const doi = document.getElementById('doi').value.trim();
+
+            if (!authors || !year || !title || !journal) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            citation = `${authors} (${year}). ${title}. <em>${journal}</em>, ${volume}`;
+            if (issue) citation += `(${issue})`;
+            if (pages) citation += `, ${pages}`;
+            citation += '.';
+            if (doi) citation += ` ${doi}`;
+
+        } else if (type === 'book') {
+            const authors = document.getElementById('authors').value.trim();
+            const year = document.getElementById('year').value.trim();
+            const title = document.getElementById('title').value.trim();
+            const publisher = document.getElementById('publisher').value.trim();
+            const doi = document.getElementById('doi').value.trim();
+
+            if (!authors || !year || !title || !publisher) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            citation = `${authors} (${year}). <em>${title}</em>. ${publisher}.`;
+            if (doi) citation += ` ${doi}`;
+
+        } else if (type === 'website') {
+            const authors = document.getElementById('authors').value.trim();
+            const year = document.getElementById('year').value.trim();
+            const title = document.getElementById('title').value.trim();
+            const website = document.getElementById('website').value.trim();
+            const url = document.getElementById('url').value.trim();
+
+            if (!authors || !year || !title || !url) {
+                alert('Please fill in all required fields');
+                return;
+            }
+
+            citation = `${authors} (${year}). ${title}. <em>${website}</em>. ${url}`;
+        }
+
+        references.push({ citation: citation });
+        saveToStorage();
+        displayReferences();
+        closeAddModal();
+        alert('✓ Reference added successfully!');
+    }
+
+    // Delete reference
+    function deleteReference(index) {
+        if (confirm('Delete this reference?')) {
+            references.splice(index, 1);
+            saveToStorage();
+            displayReferences();
+        }
+    }
+
+    // Clear all references
+    function clearAllReferences() {
+        if (references.length === 0) return;
+        
+        if (confirm(`Clear all ${references.length} reference(s)?`)) {
+            references = [];
+            saveToStorage();
+            displayReferences();
+            alert('✓ All references cleared');
+        }
+    }
+
+    // Export references
+    function exportReferences() {
+        if (references.length === 0) {
+            alert('No references to export');
+            return;
+        }
+
+        const text = 'REFERENCES\n\n' + 
+            references
+                .sort((a, b) => a.citation.localeCompare(b.citation))
+                .map(ref => ref.citation.replace(/<\/?em>/g, ''))
+                .join('\n\n');
+        
+        const blob = new Blob([text], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'references.txt';
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        alert('✓ References exported successfully!');
+    }
+
+    // Import references
+    function importReferences() {
+        document.getElementById('importModal').classList.add('active');
+    }
+
+    function closeImportModal() {
+        document.getElementById('importModal').classList.remove('active');
+        document.getElementById('importText').value = '';
+    }
+
+    function processImport() {
+        const text = document.getElementById('importText').value.trim();
+        
+        if (!text) {
+            alert('Please paste some references');
+            return;
+        }
+
+        // Split by double line breaks or single line breaks
+        const lines = text.split(/\n\n|\n/).filter(line => line.trim().length > 0);
+        
+        let imported = 0;
+        lines.forEach(line => {
+            const citation = line.trim();
+            if (citation.length > 10) { // Basic validation
+                references.push({ citation: citation });
+                imported++;
+            }
+        });
+
+        saveToStorage();
+        displayReferences();
+        closeImportModal();
+        alert(`✓ Successfully imported ${imported} reference(s)!`);
+    }
+
+    // Print references
+    function printReferences() {
+        if (references.length === 0) {
+            alert('No references to print');
+            return;
+        }
+        window.print();
+    }
+
+    // Initialize
+    loadReferences();
+</script>
+
+</body>
+</html>
